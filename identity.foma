@@ -1,0 +1,10 @@
+##foma-net 1.0##
+##props##
+1 1 1 2 1 -1 1 2 2 1 0 0 fst
+##sigma##
+1 @_UNKNOWN_SYMBOL_@
+2 @_IDENTITY_SYMBOL_@
+##states##
+0 2 0 1
+-1 -1 -1 -1 -1
+##end##

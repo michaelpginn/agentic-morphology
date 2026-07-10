@@ -1,0 +1,39 @@
+services:
+  # Filtering forward proxy. Sits on both networks and is the ONLY path to the
+  # internet for the agent. squid.conf allowlists api.anthropic.com and nothing else.
+  proxy:
+    image: ubuntu/squid:latest
+    volumes:
+      - ./squid.conf:/etc/squid/squid.conf:ro
+    networks: [internal, egress]
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/3128' || exit 1"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+  agent:
+    build: .
+    image: fst-eval
+    depends_on:
+      proxy:
+        condition: service_healthy
+    environment:
+      - HTTPS_PROXY=http://proxy:3128
+      - HTTP_PROXY=http://proxy:3128
+      - NO_PROXY=localhost,127.0.0.1
+      # Disables auto-updater / telemetry / error reporting so api.anthropic.com
+      # is the only domain Claude Code needs.
+      - CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY}
+    volumes:
+      - ./data/${LANG:?set LANG}.trn:/workspace/data/${LANG}.trn:ro
+      - ./data/${LANG}.dev:/opt/grader/data/${LANG}.dev:ro
+      - ./data/${LANG}.tst:/opt/grader/data/${LANG}.tst:ro
+    # internal ONLY: no direct route to the internet, only to `proxy`.
+    networks: [internal]
+
+networks:
+  internal:
+    internal: true   # no external connectivity
+  egress: {}         # normal bridge with internet, used only by the proxy
