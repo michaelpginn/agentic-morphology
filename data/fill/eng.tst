@@ -856,7 +856,7 @@ vant	vant	V;NFIN
 haplotype	haplotyped	V.PTCP;PST
 drumble	drumble	V;NFIN
 trigger	triggered	V.PTCP;PST
-ind.	*inded	V;PST
+ind	*inded	V;PST
 cloud	clouded	V;PST
 underbake	underbaked	V.PTCP;PST
 tipsify	tipsified	V;PST
@@ -4057,7 +4057,7 @@ overtower	overtowers	V;SG;3;PRS
 photo	photoing	V.PTCP;PRS
 drench	drenched	V;PST
 alledg	alledged	V;PST
-ind.	*inds	V;SG;3;PRS
+ind	*inds	V;SG;3;PRS
 coralise	coralises	V;SG;3;PRS
 rerelease	rereleased	V;PST
 marl	marl	V;NFIN

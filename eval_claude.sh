@@ -2,6 +2,7 @@
 set -euo pipefail
 
 export LANG="$1"
+export DATASET="$2"
 : "${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY in your environment}"
 
 prompt="Write a script called build_fst.py using the PyFoma library, which is already installed in the system python, that creates and saves an FST for the provided data. The primary goal is to produce an FST that is accurate, with a secondary goal of making the FST as compact as possible (minimal number of states).

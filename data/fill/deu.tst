@@ -11743,7 +11743,7 @@ Suite	Suiten	N;ACC;PL
 bewaffnen	bewaffneten	V;IND;PL;3;PST
 Strich	Strichen	N;DAT;PL
 überstehen	überstehen	V;IND;PL;3;PRS
-Kons.-Stamm	Kons.-Stammes	N;GEN;SG
+Kons-Stamm	Kons-Stammes	N;GEN;SG
 Spielplatz	Spielplatz	N;ACC;SG
 Floridaente	Floridaente	N;DAT;SG
 Napfkuchen	Napfkuchen	N;DAT;PL
@@ -19910,7 +19910,7 @@ Tragflügelboot	Tragflügelboote	N;ACC;PL
 eskortieren	eskortierest	V;SBJV;SG;2;PRS
 strecken	strecken	V;NFIN
 Fugen-s	Fugen-s	N;DAT;SG
-Kons.-Stamm	Kons.-Stamm	N;NOM;SG
+Kons-Stamm	Kons-Stamm	N;NOM;SG
 Amphore	Amphore	N;NOM;SG
 App	Apps	N;NOM;PL
 Spätburgundertraube	Spätburgundertraube	N;GEN;SG
@@ -25853,7 +25853,7 @@ bangen	bangte	V;SBJV;SG;3;PST
 losen	lostet	V;IND;PL;2;PST
 Entschwefelung	Entschwefelungen	N;NOM;PL
 Vorfall	Vorfall	N;DAT;SG
-Kons.-Stamm	Kons.-Stämmen	N;DAT;PL
+Kons-Stamm	Kons-Stämmen	N;DAT;PL
 hinken	hinktest	V;IND;SG;2;PST
 befestigen	befestigten	V;IND;PL;3;PST
 inaktivieren	inaktivieren	V;IND;PL;1;PRS

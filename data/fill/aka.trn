@@ -1,5 +1,5 @@
 boro	bɛboroee	V;PST+IMMED
-tow .. mu	tow .. mu	V;HAB;PRS
+tow mu	tow mu	V;HAB;PRS
 dum	dumee	V;HAB;PST
 ba	ammbɛba	V;NEG;PST+IMMED
 yi ayɛw	nnkɔyi ayɛwee	V;PRF;NEG;PRS;LGSPEC1
@@ -81,7 +81,7 @@ kɔ	rennkɔkɔ	V;PROG;NEG;PRS;LGSPEC1
 tena	tena	V;NFIN
 tew	tew	V;IMP;PRS
 kɔ	rennkɔ	V;HAB;NEG;FUT
-tow .. mu	atow .. mu	V;HAB+PRF;PRS
+tow mu	atow mu	V;HAB+PRF;PRS
 bue	nnkɔbuee	V;PRF;NEG;PRS;LGSPEC1
 kae	kɔkaee	V;PST;LGSPEC1
 mia	bɛmiaee	V;PST+IMMED
@@ -99,7 +99,7 @@ dum	rekɔdum	V;PROG;PRS;LGSPEC1
 saw	kɔsawee	V;PST;LGSPEC1
 pɛ	ammpɛ	V;HAB;NEG;PST
 wosow	nnkɔwosowee	V;PRF;NEG;PRS;LGSPEC1
-tow .. mu	bɛtow .. mu	V;HAB;FUT
+tow mu	bɛtow mu	V;HAB;FUT
 ka	rennka	V;HAB;NEG;FUT
 hyɛ ase	nna remmbɛhyɛ ase	V;PROG;NEG;PST+IMMED
 kyerɛ	rennkɔkyerɛ	V;PROG;NEG;PRS;LGSPEC1
@@ -141,7 +141,7 @@ dua	kɔduaee	V;PST;LGSPEC1
 dum	dum	V;HAB;PRS
 fa	nna akɔfa	V;PRF;PST;LGSPEC1
 bɔ waw	mbɔ waw	V;SBJV;PRS
-tow .. mu	rennkɔtow .. mu	V;PROG;NEG;PRS;LGSPEC1
+tow mu	rennkɔtow mu	V;PROG;NEG;PRS;LGSPEC1
 twerɛw	twerɛw	V;HAB;PRS
 yi	ammkɔyi	V;NEG;PST;LGSPEC1
 kɔ tiefi	abɛkɔ tiefi	V;PRF;PRS+IMMED
@@ -210,7 +210,7 @@ twa	kɔtwaee	V;PST;LGSPEC1
 huane	mmbɛhuanee	V;PRF;NEG;PRS+IMMED
 hwɛ	nna nnkɔhwɛee	V;PRF;NEG;PST;LGSPEC1
 nom	nna rekɔnom	V;PROG;PST;LGSPEC1
-tow .. mu	nna akɔtow .. mu	V;PRF;PST;LGSPEC1
+tow mu	nna akɔtow mu	V;PRF;PST;LGSPEC1
 hia	annhia	V;HAB;NEG;PST
 bɔ mpae	remmbɔ mpae	V;HAB;NEG;FUT
 guare	guaree	V;HAB;PST
@@ -237,7 +237,7 @@ so dae	nna nnso daee	V;HAB+PRF;NEG;PST
 su	akɔsu	V;PRF;PRS;LGSPEC1
 tɔn	nna retɔn	V;HAB+PROG;PST
 yew	nna rekɔyew	V;PROG;PST;LGSPEC1
-tow .. mu	nntow .. muee	V;HAB+PRF;NEG;PRS
+tow mu	nntow muee	V;HAB+PRF;NEG;PRS
 kekamu	nna rennkɔkekamu	V;PROG;NEG;PST;LGSPEC1
 fow	ammfow	V;HAB;NEG;PST
 tutu	mma nntutu	V;IMP;NEG;PRS
@@ -304,7 +304,7 @@ bɔ mpae	nna akɔbɔ mpae	V;PRF;PST;LGSPEC1
 dum	nna renndum	V;HAB+PROG;NEG;PST
 siw	rennkɔsiw	V;PROG;NEG;PRS;LGSPEC1
 tutu	bɛtutu	V;HAB;FUT
-tow .. mu	mma nntow .. mu	V;SBJV;NEG;PRS
+tow mu	mma nntow mu	V;SBJV;NEG;PRS
 hua	kɔhuaee	V;PST;LGSPEC1
 yi	nna abɛyi	V;PRF;PST+IMMED
 bisa	kɔbisaee	V;PST;LGSPEC1
@@ -380,7 +380,7 @@ ma so	mmbɛma soee	V;PRF;NEG;PRS+IMMED
 su	rennsu	V;HAB;NEG;FUT
 tɔ nko	nna nntɔ nkoee	V;HAB+PRF;NEG;PST
 fa	fa	V;NFIN
-tow .. mu	nna mmbɛtow .. muee	V;PRF;NEG;PST+IMMED
+tow mu	nna mmbɛtow muee	V;PRF;NEG;PST+IMMED
 serew	nna akɔserew	V;PRF;PST;LGSPEC1
 da ase	nna rebɛda ase	V;PROG;PST+IMMED
 gu nsu	nna rennkɔgu nsu	V;PROG;NEG;PST;LGSPEC1
@@ -497,7 +497,7 @@ pɛ	nna rekɔpɛ	V;PROG;PST;LGSPEC1
 pɛ	ammkɔpɛ	V;NEG;PST;LGSPEC1
 tow	kɔtow	V;PRS;LGSPEC1
 san	sanee	V;HAB;PST
-tow .. mu	rekɔtow .. mu	V;PROG;PRS;LGSPEC1
+tow mu	rekɔtow mu	V;PROG;PRS;LGSPEC1
 hwehwɛ	hwehwɛ	V;IMP;PRS
 serew	nnkɔserewee	V;PRF;NEG;PRS;LGSPEC1
 su	rennsu	V;HAB+PROG;NEG;PRS
@@ -530,7 +530,7 @@ huruw	nnkɔhuruw	V;NEG;PRS;LGSPEC1
 bue	bɛbuee	V;PST+IMMED
 huane	nna ahuane	V;HAB+PRF;PST
 kyia	kyia	V;IMP;PRS
-tow .. mu	nna renntow .. mu	V;HAB+PROG;NEG;PST
+tow mu	nna renntow mu	V;HAB+PROG;NEG;PST
 wo	nnkɔwoee	V;PRF;NEG;PRS;LGSPEC1
 kyereɛw	rennkyereɛw	V;HAB+PROG;NEG;PRS
 bobɔw	nna rebɛbobɔw	V;PROG;PST+IMMED
@@ -618,7 +618,7 @@ ba	abɛba	V;PRF;PRS+IMMED
 bobɔw	mma mmbobɔw	V;IMP;NEG;PRS
 bɔ nsamu	akɔbɔ nsamu	V;PRF;PRS;LGSPEC1
 ku	abɛku	V;PRF;PRS+IMMED
-tow .. mu	nna retow .. mu	V;HAB+PROG;PST
+tow mu	nna retow mu	V;HAB+PROG;PST
 mia	mia	V;NFIN
 kasa	nna nnkɔkasaee	V;PRF;NEG;PST;LGSPEC1
 twa	nntwaee	V;HAB+PRF;NEG;PRS
@@ -783,7 +783,7 @@ dua	nna rennkɔdua	V;PROG;NEG;PST;LGSPEC1
 bɔ mpae	mmbɛbɔ mpaee	V;PRF;NEG;PRS+IMMED
 so dae	so dae	V;HAB;PRS
 dum	nna nnkɔdumee	V;PRF;NEG;PST;LGSPEC1
-tow .. mu	mma nntow .. mu	V;IMP;NEG;PRS
+tow mu	mma nntow mu	V;IMP;NEG;PRS
 wie	nna rewie	V;HAB+PROG;PST
 san	nnkɔsan	V;NEG;PRS;LGSPEC1
 hohoro	ammkɔhohoro	V;NEG;PST;LGSPEC1
@@ -794,7 +794,7 @@ tɔ nko	ammbɛtɔ nko	V;NEG;PST+IMMED
 tutu	mma nntutu	V;SBJV;NEG;PRS
 fa	kɔfa	V;PRS;LGSPEC1
 hata	rennhata	V;HAB;NEG;FUT
-tow .. mu	bɛtow .. muee	V;PST+IMMED
+tow mu	bɛtow muee	V;PST+IMMED
 frɛ	frɛ	V;NFIN
 mia	nna akɔmia	V;PRF;PST;LGSPEC1
 pia	bɛpia	V;HAB;FUT
@@ -882,7 +882,7 @@ kekamu	nnkekamu	V;HAB;NEG;PRS
 hohoro	remmbɛhohoro	V;PROG;NEG;PRS+IMMED
 yew	nna akɔyew	V;PRF;PST;LGSPEC1
 ba	nnkɔbaee	V;PRF;NEG;PRS;LGSPEC1
-tow .. mu	renntow .. mu	V;HAB+PROG;NEG;PRS
+tow mu	renntow mu	V;HAB+PROG;NEG;PRS
 su	nna rebɛsu	V;PROG;PST+IMMED
 soɛr	rebɛsoɛr	V;PROG;PRS+IMMED
 nantew	kɔnantew	V;PRS;LGSPEC1
@@ -906,7 +906,7 @@ mene	mmene	V;SBJV;PRS
 kɔ tiefi	kɔ tiefi	V;HAB;PRS
 hyɛ ase	rennhyɛ ase	V;HAB;NEG;FUT
 ma	mmma	V;HAB;NEG;PRS
-tow .. mu	tow .. muee	V;HAB;PST
+tow mu	tow muee	V;HAB;PST
 kae	nnkɔkaee	V;PRF;NEG;PRS;LGSPEC1
 ma so	ammbɛma so	V;NEG;PST+IMMED
 ku	rennku	V;HAB+PROG;NEG;PRS
@@ -997,7 +997,7 @@ mene	nna amene	V;HAB+PRF;PST
 ka	remmbɛka	V;PROG;NEG;PRS+IMMED
 serew	serewee	V;HAB;PST
 kae	abɛkae	V;PRF;PRS+IMMED
-tow .. mu	retow .. mu	V;HAB+PROG;PRS
+tow mu	retow mu	V;HAB+PROG;PRS
 hyɛ ase	hyɛ asee	V;HAB;PST
 we	rewe	V;HAB+PROG;PRS
 yew	annyew	V;HAB;NEG;PST
@@ -1084,7 +1084,7 @@ kyia	nna nnkyiaee	V;HAB+PRF;NEG;PST
 hia	nhia	V;SBJV;PRS
 bisa	mmbisa	V;HAB;NEG;PRS
 san	nna nnkɔsanee	V;PRF;NEG;PST;LGSPEC1
-tow .. mu	renntow .. mu	V;HAB;NEG;FUT
+tow mu	renntow mu	V;HAB;NEG;FUT
 tie	nnkɔtie	V;NEG;PRS;LGSPEC1
 suo mu	nna rekɔsuo mu	V;PROG;PST;LGSPEC1
 sua	nna asua	V;HAB+PRF;PST
@@ -1116,7 +1116,7 @@ dua	redua	V;HAB+PROG;PRS
 hunti	nna rennkɔhunti	V;PROG;NEG;PST;LGSPEC1
 yɛ	nna nnyɛee	V;HAB+PRF;NEG;PST
 tow	rekɔtow	V;PROG;PRS;LGSPEC1
-tow .. mu	nnkɔtow .. mu	V;NEG;PRS;LGSPEC1
+tow mu	nnkɔtow mu	V;NEG;PRS;LGSPEC1
 tɔn	nntɔn	V;HAB;NEG;PRS
 yɛ adwuma	mmbɛyɛ adwumaee	V;PRF;NEG;PRS+IMMED
 wie	rebɛwie	V;PROG;PRS+IMMED
@@ -1234,7 +1234,7 @@ kyereɛw	mma nnkyereɛw	V;SBJV;NEG;PRS
 pepa	nna rebɛpepa	V;PROG;PST+IMMED
 twerɛw	nna remmbɛtwerɛw	V;PROG;NEG;PST+IMMED
 yɛ adwuma	yɛ adwuma	V;NFIN
-tow .. mu	anntow .. mu	V;HAB;NEG;PST
+tow mu	anntow mu	V;HAB;NEG;PST
 kyereɛw	nna akyereɛw	V;HAB+PRF;PST
 pɛ	nna remmpɛ	V;HAB+PROG;NEG;PST
 ku	bɛku	V;HAB;FUT
@@ -1419,10 +1419,10 @@ ma so	nna rekɔma so	V;PROG;PST;LGSPEC1
 tie	ammkɔtie	V;NEG;PST;LGSPEC1
 huane	mma nnhuane	V;IMP;NEG;PRS
 fra	bɛfraee	V;PST+IMMED
-tow .. mu	akɔtow .. mu	V;PRF;PRS;LGSPEC1
+tow mu	akɔtow mu	V;PRF;PRS;LGSPEC1
 su	nna resu	V;HAB+PROG;PST
 ka	nna nnkaee	V;HAB+PRF;NEG;PST
-tow .. mu	ammkɔtow .. mu	V;NEG;PST;LGSPEC1
+tow mu	ammkɔtow mu	V;NEG;PST;LGSPEC1
 hwehwɛ	hwehwɛ	V;NFIN
 bue	mbue	V;SBJV;PRS
 san	nna mmbɛsanee	V;PRF;NEG;PST+IMMED
@@ -1456,8 +1456,8 @@ yɛ	yɛ	V;IMP;PRS
 pepa	nna remmpepa	V;HAB+PROG;NEG;PST
 kyereɛw	rebɛkyereɛw	V;PROG;PRS+IMMED
 hohoro	nna ahohoro	V;HAB+PRF;PST
-tow .. mu	nna nnkɔtow .. muee	V;PRF;NEG;PST;LGSPEC1
-tow .. mu	nna nntow .. muee	V;HAB+PRF;NEG;PST
+tow mu	nna nnkɔtow muee	V;PRF;NEG;PST;LGSPEC1
+tow mu	nna nntow muee	V;HAB+PRF;NEG;PST
 tɔn	remmbɛtɔn	V;PROG;NEG;PRS+IMMED
 kenkan	nna rekenkan	V;HAB+PROG;PST
 ba	mmba	V;HAB;NEG;PRS
@@ -1642,7 +1642,7 @@ hunti	nna remmbɛhunti	V;PROG;NEG;PST+IMMED
 yew	bɛyewee	V;PST+IMMED
 kɔ tiefi	rennkɔ tiefi	V;HAB;NEG;FUT
 fra	remmbɛfra	V;PROG;NEG;PRS+IMMED
-tow .. mu	nna remmbɛtow .. mu	V;PROG;NEG;PST+IMMED
+tow mu	nna remmbɛtow mu	V;PROG;NEG;PST+IMMED
 mene	ammkɔmene	V;NEG;PST;LGSPEC1
 siw	nna rekɔsiw	V;PROG;PST;LGSPEC1
 yi ayɛw	kɔyi ayɛwee	V;PST;LGSPEC1
@@ -2081,7 +2081,7 @@ dua	nnkɔdua	V;NEG;PRS;LGSPEC1
 da	bɛdaee	V;PST+IMMED
 sensen	rekɔsensen	V;PROG;PRS;LGSPEC1
 twerɛw	ammbɛtwerɛw	V;NEG;PST+IMMED
-tow .. mu	rebɛtow .. mu	V;PROG;PRS+IMMED
+tow mu	rebɛtow mu	V;PROG;PRS+IMMED
 nyam	nna mmbɛnyamee	V;PRF;NEG;PST+IMMED
 dum	redum	V;HAB+PROG;PRS
 hata	nna rennhata	V;HAB+PROG;NEG;PST
@@ -2093,7 +2093,7 @@ yɛ	nna rennkɔyɛ	V;PROG;NEG;PST;LGSPEC1
 we	nna awe	V;HAB+PRF;PST
 ma so	nnkɔma soee	V;PRF;NEG;PRS;LGSPEC1
 tafeere	nna rekɔtafeere	V;PROG;PST;LGSPEC1
-tow .. mu	abɛtow .. mu	V;PRF;PRS+IMMED
+tow mu	abɛtow mu	V;PRF;PRS+IMMED
 suo mu	nna remmbɛsuo mu	V;PROG;NEG;PST+IMMED
 so dae	mma nnso dae	V;SBJV;NEG;PRS
 da ase	ammkɔda ase	V;NEG;PST;LGSPEC1
@@ -2247,7 +2247,7 @@ bɔ waw	rennkɔbɔ waw	V;PROG;NEG;PRS;LGSPEC1
 da	mma nnda	V;IMP;NEG;PRS
 kyiri	nna akɔkyiri	V;PRF;PST;LGSPEC1
 hwehwɛ	bɛhwehwɛee	V;PST+IMMED
-tow .. mu	nnkɔtow .. muee	V;PRF;NEG;PRS;LGSPEC1
+tow mu	nnkɔtow muee	V;PRF;NEG;PRS;LGSPEC1
 yew	remmbɛyew	V;PROG;NEG;PRS+IMMED
 wie	wie	V;IMP;PRS
 bobɔw	nna abɛbobɔw	V;PRF;PST+IMMED
@@ -2316,7 +2316,7 @@ hua	nna nnkɔhuaee	V;PRF;NEG;PST;LGSPEC1
 yɛ	yɛee	V;HAB;PST
 gye	gyee	V;HAB;PST
 bɔ waw	nna abɔ waw	V;HAB+PRF;PST
-tow .. mu	nna rennkɔtow .. mu	V;PROG;NEG;PST;LGSPEC1
+tow mu	nna rennkɔtow mu	V;PROG;NEG;PST;LGSPEC1
 yew	yew	V;NFIN
 yɛ adwuma	nna mmbɛyɛ adwumaee	V;PRF;NEG;PST+IMMED
 tew	mmbɛtewee	V;PRF;NEG;PRS+IMMED
@@ -2444,7 +2444,7 @@ yew	nna rennyew	V;HAB+PROG;NEG;PST
 bue	buee	V;HAB;PST
 yɛ	nyɛ	V;SBJV;PRS
 gye	kɔgye	V;PRS;LGSPEC1
-tow .. mu	ntow .. mu	V;SBJV;PRS
+tow mu	ntow mu	V;SBJV;PRS
 fa	nna mmbɛfaee	V;PRF;NEG;PST+IMMED
 twerɛw	nnkɔtwerɛw	V;NEG;PRS;LGSPEC1
 kyiri	kyiri	V;NFIN
@@ -2490,7 +2490,7 @@ ka	bɛkaee	V;PST+IMMED
 hu	nna akɔhu	V;PRF;PST;LGSPEC1
 san	ammkɔsan	V;NEG;PST;LGSPEC1
 hyɛ ase	nna ahyɛ ase	V;HAB+PRF;PST
-tow .. mu	nna rekɔtow .. mu	V;PROG;PST;LGSPEC1
+tow mu	nna rekɔtow mu	V;PROG;PST;LGSPEC1
 yi	nna nnyiee	V;HAB+PRF;NEG;PST
 mene	mmmenee	V;HAB+PRF;NEG;PRS
 nom	nnkɔnom	V;NEG;PRS;LGSPEC1
@@ -2517,7 +2517,7 @@ yɛ adwuma	ammbɛyɛ adwuma	V;NEG;PST+IMMED
 kyereɛw	nna rekɔkyereɛw	V;PROG;PST;LGSPEC1
 kyiri	nnkɔkyiri	V;NEG;PRS;LGSPEC1
 kɔ tiefi	kɔkɔ tiefiee	V;PST;LGSPEC1
-tow .. mu	mmbɛtow .. muee	V;PRF;NEG;PRS+IMMED
+tow mu	mmbɛtow muee	V;PRF;NEG;PRS+IMMED
 yi ayɛw	nna remmbɛyi ayɛw	V;PROG;NEG;PST+IMMED
 kyiri	nnkyiri	V;HAB;NEG;PRS
 tɔ nko	kɔtɔ nkoee	V;PST;LGSPEC1
@@ -2547,7 +2547,7 @@ ba	aba	V;HAB+PRF;PRS
 bɔ nsamu	mmbɔ nsamu	V;HAB;NEG;PRS
 boro	remmboro	V;HAB;NEG;FUT
 bue	nna abɛbue	V;PRF;PST+IMMED
-tow .. mu	ammbɛtow .. mu	V;NEG;PST+IMMED
+tow mu	ammbɛtow mu	V;NEG;PST+IMMED
 ku	ammkɔku	V;NEG;PST;LGSPEC1
 di nkonim	adi nkonim	V;HAB+PRF;PRS
 tutu	remmbɛtutu	V;PROG;NEG;PRS+IMMED
@@ -2658,7 +2658,7 @@ suma	annsuma	V;HAB;NEG;PST
 tie	tie	V;NFIN
 hohoro	nna mmbɛhohoroee	V;PRF;NEG;PST+IMMED
 tew	rennkɔtew	V;PROG;NEG;PRS;LGSPEC1
-tow .. mu	kɔtow .. muee	V;PST;LGSPEC1
+tow mu	kɔtow muee	V;PST;LGSPEC1
 dum	nna remmbɛdum	V;PROG;NEG;PST+IMMED
 kɔ	rennkɔ	V;HAB+PROG;NEG;PRS
 suo mu	nna asuo mu	V;HAB+PRF;PST
@@ -2689,7 +2689,7 @@ frɛ	remmfrɛ	V;HAB+PROG;NEG;PRS
 soɛr	kɔsoɛr	V;PRS;LGSPEC1
 hwehwɛ	rennhwehwɛ	V;HAB;NEG;FUT
 tew	ntew	V;SBJV;PRS
-tow .. mu	nna rebɛtow .. mu	V;PROG;PST+IMMED
+tow mu	nna rebɛtow mu	V;PROG;PST+IMMED
 da	nna rennkɔda	V;PROG;NEG;PST;LGSPEC1
 tow	mma nntow	V;IMP;NEG;PRS
 tutu	tutu	V;IMP;PRS
@@ -2777,7 +2777,7 @@ fa	nnkɔfa	V;NEG;PRS;LGSPEC1
 fra	nna remmfra	V;HAB+PROG;NEG;PST
 ka	kɔka	V;PRS;LGSPEC1
 ku	rennku	V;HAB;NEG;FUT
-tow .. mu	tow .. mu	V;NFIN
+tow mu	tow mu	V;NFIN
 kyerɛ	akyerɛ	V;HAB+PRF;PRS
 hua	hua	V;IMP;PRS
 tafeere	nna rebɛtafeere	V;PROG;PST+IMMED

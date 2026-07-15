@@ -1681,7 +1681,7 @@ verwundern	verwundre	V;IND;SG;1;PRS
 Kick	Kick	N;NOM;SG
 kacken	kacken	V;SBJV;PL;1;PRS
 vernehmen	vernähmet	V;SBJV;PL;2;PST
-Kons.-Stamm	Kons.-Stämme	N;NOM;PL
+Kons-Stamm	Kons-Stämme	N;NOM;PL
 Kurbad	Kurbäder	N;NOM;PL
 chauffieren	chauffierest	V;SBJV;SG;2;PRS
 Honigtopfameise	Honigtopfameise	N;ACC;SG
@@ -7916,7 +7916,7 @@ schäumen	schäumest	V;SBJV;SG;2;PRS
 schießen	schössest	V;SBJV;SG;2;PST
 Kern	Kern	N;ACC;SG
 Inländerin	Inländerinnen	N;DAT;PL
-Kons.-Stamm	Kons.-Stämme	N;ACC;PL
+Kons-Stamm	Kons-Stämme	N;ACC;PL
 Frühjahr	Frühjahr	N;NOM;SG
 Kragenente	Kragenenten	N;NOM;PL
 bereden	beredetest	V;SBJV;SG;2;PST
@@ -24424,7 +24424,7 @@ Schuldenschnitt	Schuldenschnitte	N;NOM;PL
 Leiste	Leiste	N;DAT;SG
 Molybdit	Molybditen	N;DAT;PL
 Begriffsklärung	Begriffsklärung	N;DAT;SG
-Kons.-Stamm	Kons.-Stamm	N;ACC;SG
+Kons-Stamm	Kons-Stamm	N;ACC;SG
 Erbtante	Erbtanten	N;ACC;PL
 Assembler	Assembler	N;NOM;PL
 Apsis	Apsiden	N;ACC;PL
@@ -27377,7 +27377,7 @@ Tollkirsche	Tollkirsche	N;GEN;SG
 kritzeln	kritzelte	V;SBJV;SG;3;PST
 Sonderzeichen	Sonderzeichen	N;ACC;SG
 Haarfarbe	Haarfarbe	N;DAT;SG
-Kons.-Stamm	Kons.-Stamm	N;DAT;SG
+Kons-Stamm	Kons-Stamm	N;DAT;SG
 prickeln	prickelten	V;SBJV;PL;3;PST
 Psychopathie	Psychopathie	N;ACC;SG
 Wimper	Wimper	N;ACC;SG
@@ -64786,7 +64786,7 @@ Mehrdeutigkeit	Mehrdeutigkeiten	N;NOM;PL
 Pusteblume	Pusteblumen	N;DAT;PL
 Redner	Redner	N;NOM;SG
 verfluchen	verfluche	V;IND;SG;1;PRS
-Kons.-Stamm	Kons.-Stämme	N;GEN;PL
+Kons-Stamm	Kons-Stämme	N;GEN;PL
 Theta	Thetas	N;DAT;PL
 chatten	chatte	V;IMP;SG;2
 Ärzteblatt	Ärzteblätter	N;ACC;PL

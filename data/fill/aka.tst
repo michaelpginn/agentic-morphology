@@ -263,7 +263,7 @@ soɛr	annsoɛr	V;HAB;NEG;PST
 tɔ nko	bɛtɔ nkoee	V;PST+IMMED
 kyereɛw	abɛkyereɛw	V;PRF;PRS+IMMED
 bɔ mpae	nna abɔ mpae	V;HAB+PRF;PST
-tow .. mu	nna atow .. mu	V;HAB+PRF;PST
+tow mu	nna atow mu	V;HAB+PRF;PST
 tɔ nko	kɔtɔ nko	V;PRS;LGSPEC1
 kɔ	nna rekɔ	V;HAB+PROG;PST
 hunti	ammkɔhunti	V;NEG;PST;LGSPEC1
@@ -418,7 +418,7 @@ gu nsu	rebɛgu nsu	V;PROG;PRS+IMMED
 tena	akɔtena	V;PRF;PRS;LGSPEC1
 pia	piaee	V;HAB;PST
 hwehwɛ	kɔhwehwɛ	V;PRS;LGSPEC1
-tow .. mu	nntow .. mu	V;HAB;NEG;PRS
+tow mu	nntow mu	V;HAB;NEG;PRS
 twa	ammbɛtwa	V;NEG;PST+IMMED
 kae	nna nnkaee	V;HAB+PRF;NEG;PST
 kɔ	ammbɛkɔ	V;NEG;PST+IMMED
@@ -721,7 +721,7 @@ hwehwɛ	annhwehwɛ	V;HAB;NEG;PST
 hwɛ	mma nnhwɛ	V;SBJV;NEG;PRS
 hua	bɛhuaee	V;PST+IMMED
 bɔ waw	remmbɛbɔ waw	V;PROG;NEG;PRS+IMMED
-tow .. mu	tow .. mu	V;IMP;PRS
+tow mu	tow mu	V;IMP;PRS
 fow	rekɔfow	V;PROG;PRS;LGSPEC1
 gu nsu	bɛgu nsuee	V;PST+IMMED
 tweɔn	remmbɛtweɔn	V;PROG;NEG;PRS+IMMED
@@ -738,7 +738,7 @@ gye	nnkɔgye	V;NEG;PRS;LGSPEC1
 ma	akɔma	V;PRF;PRS;LGSPEC1
 fa	nna rebɛfa	V;PROG;PST+IMMED
 hua	rebɛhua	V;PROG;PRS+IMMED
-tow .. mu	nna abɛtow .. mu	V;PRF;PST+IMMED
+tow mu	nna abɛtow mu	V;PRF;PST+IMMED
 so dae	bɛso daee	V;PST+IMMED
 mene	mmmene	V;HAB;NEG;PRS
 nyam	remmbɛnyam	V;PROG;NEG;PRS+IMMED
@@ -746,7 +746,7 @@ huruw	nna remmbɛhuruw	V;PROG;NEG;PST+IMMED
 kyiri	rebɛkyiri	V;PROG;PRS+IMMED
 bisa	nna rebisa	V;HAB+PROG;PST
 kenkan	kenkan	V;HAB;PRS
-tow .. mu	remmbɛtow .. mu	V;PROG;NEG;PRS+IMMED
+tow mu	remmbɛtow mu	V;PROG;NEG;PRS+IMMED
 gye	mma nngye	V;SBJV;NEG;PRS
 di	bɛdiee	V;PST+IMMED
 nom	nna abɛnom	V;PRF;PST+IMMED

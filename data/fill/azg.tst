@@ -760,7 +760,7 @@ n⁵nduí⁵ si³	ko³nduí⁵si³hâ³¹	V;IPFV;PL;1+EXCL;PRS
 n⁵ndí⁵ʔnaʔ³⁴	nhâ³¹	V;IPFV;PL;1+EXCL;PRS
 n⁵ndí⁵ntyʔà¹	to³ndí⁵tyʔà¹ʔu³	V;PROG;SG;2;PST
 n⁵ndyʔue³	ko³ki³tyue³oʔ³	V;IPFV;PL;3;PRS
-n⁵ndʔuiʔ³⁵	n⁵ndʔuiʔ³⁵ʔu³.	V;IRR;SG;2;FUT
+n⁵ndʔuiʔ³⁵	n⁵ndʔuiʔ³⁵ʔu³	V;IRR;SG;2;FUT
 n⁵ndyio³tzʔián⁵	n⁵ngo³tyiɔ³⁴tzʔián⁵	V;PROG;PL;1+INCL;FUT
 n⁵ndí⁵na³nkoʔ³⁴	n⁵ndí⁵na³nkoʔ³⁴hâ³¹	V;IRR;PL;1+EXCL;FUT
 n⁵ndyionʔ³⁵tzʔon³	to³tyionʔ³⁵tzʔɔn⁵³	V;PROG;SG;1;PST

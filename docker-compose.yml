@@ -27,13 +27,13 @@ services:
       - CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY}
     volumes:
-      - ./data/${LANG:?set LANG}.trn:/workspace/data/${LANG}.trn:ro
-      - ./data/${LANG}.dev:/opt/grader/data/${LANG}.dev:ro
-      - ./data/${LANG}.tst:/opt/grader/data/${LANG}.tst:ro
+      - ./data/${DATASET:?set DATASET}/${LANG:?set LANG}.trn:/workspace/data/${LANG}.trn:ro
+      - ./data/${DATASET}/${LANG}.dev:/opt/grader/data/${LANG}.dev:ro
+      - ./data/${DATASET}/${LANG}.tst:/opt/grader/data/${LANG}.tst:ro
     # internal ONLY: no direct route to the internet, only to `proxy`.
     networks: [internal]
 
 networks:
   internal:
-    internal: true   # no external connectivity
-  egress: {}         # normal bridge with internet, used only by the proxy
+    internal: true # no external connectivity
+  egress: {} # normal bridge with internet, used only by the proxy
