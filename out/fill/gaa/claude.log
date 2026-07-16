@@ -1,0 +1,334 @@
+I'll start by examining the training data and understanding the PyFoma library.
+→ Bash: wc -l /workspace/data/gaa.trn; echo "---"; head -30 /workspace/data/gaa.trn
+    607 /workspace/data/gaa.trn
+    ---
+    gbele	gbele	V;HAB;PRS
+    joo	joo	V;NFIN
+    he	he	V;NFIN
+    ŋa	ŋako	V;HAB;NEG;PRS
+    gbi	gbi	V;NFIN
+    sele	seleko	V;HAB;NEG;PRS
+    kɔɔ	baakɔɔ	V;HAB;FUT
+    wɔlɔmɔ	wɔlɔmɔ	V;NFIN
+    kɔɔ	kɔɔee	V;NEG;PRS
+    sɔle	sɔle	V;NFIN
+    joo	baajoo	V;HAB;FUT
+    la	laee	V;HAB;NEG;FUT
+    bɔ	bɔ	V;NFIN
+    faa	faaee	V;NEG;PRS
+    sele	seleee	V;HAB;NEG;PST
+    tsɔɔ	baatsɔɔ	V;HAB;FUT
+    fɔ	fɔee	V;NEG;PRS
+    sɔle	sɔleee	V;HAB;NEG;FUT
+    tsa	tsaee	V;HAB;NEG;FUT
+    kota	kotako	V;HAB;NEG;PRS
+    joo	jooee	V;HAB;NEG;PST
+    sumɔ	baasumɔ	V;HAB;FUT
+    kpasa	ŋkpasa	V;PRS
+    gbi	gbi	V;HAB;PST
+    joo	jooko	V;HAB;NEG;PRS
+    na	nako	V;HAB;NEG;PRS
+    tsɔse	ŋtsɔse	V;PRS
+    fee	ŋfee	V;PRS
+    fala	fala	V;HAB;PST
+    wɔdɔi	wɔdɔiee	V;NEG;PRS
+→ Bash: python -c "import pyfoma; print(pyfoma.__file__); print(dir(pyfoma))"
+    /usr/local/lib/python3.11/site-packages/pyfoma/__init__.py
+    ['FST', 'Paradigm', 'State', 'Transition', '__author__', '__builtins__', '__cached__', '__copyright__', '__credits__', '__doc__', '__email__', '__file__', '__license__', '__loader__', '__maintainer__', '__name__', '__package__', '__path__', '__spec__', '__status__', '__version__', '_private', 'algorithms', 'atomic', 'concatenate', 'context_restrict', 'determinize', 'flag', 'fst', 'ignore', 'invert', 'minimize', 'paradigm', 'project', 're', 'reverse', 'rewrite', 'to_regex']
+→ Bash: cd /workspace/data; echo "=== feature bundles ==="; cut -f3 gaa.trn | sort | uniq -c | sort -rn; echo "=== unique lemmas ==="; cut -f1 gaa.…
+    === feature bundles ===
+         74 V;NEG;PRS
+         73 V;HAB;NEG;PRS
+         70 V;HAB;PRS
+         68 V;HAB;PST
+         67 V;NFIN
+         66 V;HAB;NEG;PST
+         64 V;HAB;NEG;FUT
+         63 V;HAB;FUT
+         62 V;PRS
+    === unique lemmas ===
+    95
+→ Bash: cd /workspace/data; for f in "V;NFIN" "V;PRS" "V;HAB;PRS" "V;HAB;PST" "V;HAB;FUT" "V;NEG;PRS" "V;HAB;NEG;PRS" "V;HAB;NEG;PST" "V;HAB;NEG;FU…
+    === V;NFIN ===
+    === V;PRS ===
+    === V;HAB;PRS ===
+    === V;HAB;PST ===
+    === V;HAB;FUT ===
+    === V;NEG;PRS ===
+    === V;HAB;NEG;PRS ===
+    === V;HAB;NEG;PST ===
+    === V;HAB;NEG;FUT ===
+→ Bash: cd /workspace/data; python3 -c " from collections import defaultdict d=defaultdict(list) for line in open('gaa.trn',encoding='utf-8'):     …
+    === V;NFIN ===
+    joo          -> joo
+    he           -> he
+    gbi          -> gbi
+    wɔlɔmɔ       -> wɔlɔmɔ
+    sɔle         -> sɔle
+    bɔ           -> bɔ
+    na           -> na
+    hia          -> hia
+    yɛ           -> yɛ
+    bɛɛ          -> bɛɛ
+    fo           -> fo
+    tsɔse        -> tsɔse
+    ŋmɔɔ         -> ŋmɔɔ
+    tawɔ         -> tawɔ
+    === V;PRS ===
+    kpasa        -> ŋkpasa
+    tsɔse        -> ŋtsɔse
+    fee          -> ŋfee
+    kase         -> ŋkase
+    na           -> ŋna
+    tsɔɔ         -> ŋtsɔɔ
+    shamɔ        -> ŋshamɔ
+    tawɔ         -> ŋtawɔ
+    kɔ           -> ŋkɔ
+    tsine        -> ŋtsine
+    kpɛtɛ        -> ŋkpɛtɛ
+    tsu          -> ŋtsu
+    jie          -> ŋjie
+    gbele        -> ŋgbele
+    === V;HAB;PRS ===
+    gbele        -> gbele
+    tsi          -> tsi
+    sele         -> sele
+    kwɛ          -> kwɛ
+    kota         -> kota
+    kase         -> kase
+    jie          -> jie
+    lɛmɔ         -> lɛmɔ
+    tsuku        -> tsuku
+    hi           -> hi
+    tswaa        -> tswaa
+    wɔ           -> wɔ
+    ha           -> ha
+    sɔle         -> sɔle
+    === V;HAB;PST ===
+    gbi          -> gbi
+    fala         -> fala
+    joo          -> joo
+    fɔ           -> fɔ
+    kafo         -> kafo
+    hiɛ          -> hiɛ
+    tawɔ         -> tawɔ
+    mɔ           -> mɔ
+    taa          -> taa
+    kai          -> kai
+    tsɔɔ         -> tsɔɔ
+    tuu          -> tuu
+    bɔ           -> bɔ
+    fɔflɔ        -> fɔflɔ
+    === V;HAB;FUT ===
+    kɔɔ          -> baakɔɔ
+    joo          -> baajoo
+    tsɔɔ         -> baatsɔɔ
+    sumɔ         -> baasumɔ
+    la           -> baala
+    kpasa        -> baakpasa
+    mi           -> baami
+    tee          -> baatee
+    gbi          -> baagbi
+    le           -> baale
+    he           -> baahe
+    ha           -> baaha
+    tawɔ         -> baatawɔ
+    fo           -> baafo
+    === V;NEG;PRS ===
+    kɔɔ          -> kɔɔee
+    faa          -> faaee
+    fɔ           -> fɔee
+    wɔdɔi        -> wɔdɔiee
+    la           -> laee
+    hi           -> hiee
+    nyiɛ         -> nyiɛee
+    kpe          -> kpeee
+    kpasa        -> kpasaee
+    ku           -> kuee
+    sɔle         -> sɔleee
+    kase         -> kaseee
+    sumɔ         -> sumɔee
+    tuu          -> tuuee
+    === V;HAB;NEG;PRS ===
+    ŋa           -> ŋako
+    sele         -> seleko
+    kota         -> kotako
+    joo          -> jooko
+    na           -> nako
+    daa          -> daako
+    lɛmɔ         -> lɛmɔko
+    kpɛtɛ        -> kpɛtɛko
+    kai          -> kaiko
+    da           -> dako
+    wo           -> woko
+    du           -> duko
+    tee          -> teeko
+    ju           -> juko
+    === V;HAB;NEG;PST ===
+    sele         -> seleee
+    joo          -> jooee
+    wɔ           -> wɔee
+    fɔ           -> fɔee
+    hiɛ          -> hiɛee
+    futu         -> futuee
+    fu           -> fuee
+    gbi          -> gbiee
+    shamɔ        -> shamɔee
+    ku           -> kuee
+    wa           -> waee
+    bi           -> biee
+    jaa          -> jaaee
+    nu           -> nuee
+    === V;HAB;NEG;FUT ===
+    la           -> laee
+    sɔle         -> sɔleee
+    tsa          -> tsaee
+    gblɛ         -> gblɛee
+    daa          -> daaee
+    hiɛ          -> hiɛee
+    wɔdɔi        -> wɔdɔiee
+    tsɛ          -> tsɛee
+    kɔ           -> kɔee
+    fala         -> falaee
+    jɔ           -> jɔee
+    futu         -> futuee
+    tsɔɔ         -> tsɔɔee
+    gbla         -> gblaee
+→ Bash: cd /workspace/data; python3 -c " from collections import defaultdict d=defaultdict(list) for line in open('gaa.trn',encoding='utf-8'):     …
+    === V;NFIN ===
+       67  ID
+    === V;PRS ===
+       62  PFX:ŋ
+    === V;HAB;PRS ===
+       70  ID
+    === V;HAB;PST ===
+       68  ID
+    === V;HAB;FUT ===
+       63  PFX:baa
+    === V;NEG;PRS ===
+       74  SFX:ee
+    === V;HAB;NEG;PRS ===
+       73  SFX:ko
+    === V;HAB;NEG;PST ===
+       66  SFX:ee
+    === V;HAB;NEG;FUT ===
+       64  SFX:ee
+The transformations are perfectly clean. Let me learn PyFoma's regex syntax with quick tests.
+→ Bash: cd /workspace; python3 -c " from pyfoma import FST # test quoting and transduction f = FST.re(\"'[V]' '[FUT]' ('':'b') ('a'|'b')*\") print(…
+    built ok
+    '[V][FUT]bab'
+→ Bash: cd /workspace/data; python3 -c " chars=set() for line in open('gaa.trn',encoding='utf-8'):     line=line.rstrip('\n')     if not line: cont…
+    lemma chars: [' ', 'a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 's', 't', 'u', 'w', 'y', 'ŋ', 'ɔ', 'ɛ']
+    count: 24
+    extra form chars: []
+→ Bash: cd /workspace/data; grep -nP ' .*\t' gaa.trn | grep -P '^\d+:[^\t]* [^\t]*\t' | head; echo "---lemmas with space---"; python3 -c " for line…
+    109:ye nkunim	ye nkunimko	V;HAB;NEG;PRS
+    265:ye nkunim	baaye nkunim	V;HAB;FUT
+    397:ye nkunim	ye nkunim	V;HAB;PRS
+    415:ye nkunim	ye nkunim	V;HAB;PST
+    524:ye nkunim	ye nkunimee	V;NEG;PRS
+    544:ye nkunim	ye nkunimee	V;HAB;NEG;PST
+    ---lemmas with space---
+    'ye nkunim' 'ye nkunimko' V;HAB;NEG;PRS
+    'ye nkunim' 'baaye nkunim' V;HAB;FUT
+    'ye nkunim' 'ye nkunim' V;HAB;PRS
+    'ye nkunim' 'ye nkunim' V;HAB;PST
+    'ye nkunim' 'ye nkunimee' V;NEG;PRS
+    'ye nkunim' 'ye nkunimee' V;HAB;NEG;PST
+Rules are clean and cover 100% of training. Let me build the script.
+→ Write: /workspace/build_fst.py
+    File created successfully at: /workspace/build_fst.py (file state is current in your context — no need to Read it back)
+→ Bash: cd /workspace; python3 build_fst.py
+    Exit code 1
+    Traceback (most recent call last):
+      File "/workspace/build_fst.py", line 68, in <module>
+        fst = fst.minimized()
+              ^^^^^^^^^^^^^
+    AttributeError: 'FST' object has no attribute 'minimized'. Did you mean: 'minimize'?
+→ Bash: cd /workspace; python3 -c "from pyfoma import FST; f=FST.re(\"'a'*\"); print([m for m in dir(f) if 'min' in m.lower() or 'state' in m.lower…
+    ['__getstate__', 'determinize', 'determinize_as_dfa', 'determinize_unweighted', 'eliminate_flags', 'finalstates', 'from_fomastring', 'initialstate', 'is_deterministic', 'label_states_topology', 'load_foma', 'merge_equivalent_states', 'minimize', 'minimize_as_dfa', 'minimize_brz', 'number_unnamed_states', 'save_foma', 'states', 'to_fomastring']
+→ Edit: /workspace/build_fst.py
+    The file /workspace/build_fst.py has been updated successfully. (file state is current in your context — no need to Read it back)
+→ Bash: cd /workspace; python3 build_fst.py
+    States: 15
+    Wrote test.foma
+→ Bash: cd /workspace; python3 -c " from pyfoma import FST f=FST.load_foma('test.foma') if hasattr(FST,'load_foma') else None " 2>&1 | head; python…
+    ['analyze', 'apply', 'generate']
+→ Bash: cd /workspace; python3 -c " from pyfoma import FST s=open('test.foma').read() f=FST.from_fomastring(s) from collections import defaultdict …
+    607/607 exact single-output match
+All 607 training examples match exactly. Let me run the grader once to check dev/test generalization.
+→ Bash: cd /workspace; sudo /opt/grader/grade test.foma --lang gaa 2>&1 | tail -30
+    kpɛtɛ	V;HAB;NEG;PST	[V][HAB][NEG][PST]kpɛtɛee	Y
+    kɔɔ	V;NFIN	[V][NFIN]kɔɔ	Y
+    gbee	V;HAB;NEG;PRS	[V][HAB][NEG][PRS]gbeeko	Y
+    tsɔse	V;NEG;PRS	[V][NEG][PRS]tsɔseee	Y
+    lɛmɔ	V;PRS	[V][PRS]ŋlɛmɔ	Y
+    gbele	V;HAB;NEG;PST	[V][HAB][NEG][PST]gbeleee	Y
+    ya	V;HAB;PST	[V][HAB][PST]ya	Y
+    taa	V;NFIN	[V][NFIN]taa	Y
+    woso	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]wosoee	Y
+    gbele	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]gbeleee	Y
+    fala	V;HAB;NEG;PRS	[V][HAB][NEG][PRS]falako	Y
+    fɔ	V;HAB;PRS	[V][HAB][PRS]fɔ	Y
+    kwɛ	V;HAB;FUT	[V][HAB][FUT]baakwɛ	Y
+    ye nkunim	V;NFIN	[V][NFIN]ye nkunim	Y
+    fu	V;NEG;PRS	[V][NEG][PRS]fuee	Y
+    jaa	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]jaaee	Y
+    kwɛ	V;NFIN	[V][NFIN]kwɛ	Y
+    jɔ	V;NFIN	[V][NFIN]jɔ	Y
+    ŋmɔɔ	V;NEG;PRS	[V][NEG][PRS]ŋmɔɔee	Y
+    ŋmɔ	V;HAB;PST	[V][HAB][PST]ŋmɔ	Y
+    ha	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]haee	Y
+    jɔ	V;HAB;NEG;PST	[V][HAB][NEG][PST]jɔee	Y
+    bɛɛ	V;NEG;PRS	[V][NEG][PRS]bɛɛee	Y
+    tswaa	V;NFIN	[V][NFIN]tswaa	Y
+    ŋmɔɔ	V;HAB;PRS	[V][HAB][PRS]ŋmɔɔ	Y
+    ===============
+    Final score (dev): 79/79
+    ===============
+    Final score (test): 169/169
+    Wrote to /opt/grader/metrics.json
+Perfect result. The FST achieves **100% accuracy on both dev (79/79) and test (169/169)** sets.
+
+## Summary
+
+I built `/workspace/build_fst.py` using PyFoma. After analyzing the training data, I found the Ga inflection is perfectly regular — each of the 9 feature bundles maps to a single affix operation with **zero exceptions** across all 607 training examples:
+
+| Feature bundle | Operation |
+|---|---|
+| `V;NFIN`, `V;HAB;PRS`, `V;HAB;PST` | identity |
+| `V;PRS` | prefix `ŋ` |
+| `V;HAB;FUT` | prefix `baa` |
+| `V;NEG;PRS`, `V;HAB;NEG;PST`, `V;HAB;NEG;FUT` | suffix `ee` |
+| `V;HAB;NEG;PRS` | suffix `ko` |
+
+**Design:**
+- The FST is a union of 9 paths, one per bundle. Each path reads back the bracketed feature tags identically (`'[V]' '[HAB]' …`), then transforms the lemma characters.
+- Every character/feature is an atomic quoted symbol (single-quote quoting), so the input tokenizes cleanly — the alphabet includes the space in the multiword verb `ye nkunim` and the Ga graphemes `ŋ ɔ ɛ`.
+- The shared copy-sublanguage (`Sigma*`) lets `minimize()` collapse the whole machine to just **15 states**.
+- Saved via `to_fomastring()` → `test.foma`.
+
+Correctness (accuracy) was the priority and it's perfect; compactness came for free at 15 states. This used 1 of the 10 grading runs.
+
+=== FINAL RESULT ===
+Perfect result. The FST achieves **100% accuracy on both dev (79/79) and test (169/169)** sets.
+
+## Summary
+
+I built `/workspace/build_fst.py` using PyFoma. After analyzing the training data, I found the Ga inflection is perfectly regular — each of the 9 feature bundles maps to a single affix operation with **zero exceptions** across all 607 training examples:
+
+| Feature bundle | Operation |
+|---|---|
+| `V;NFIN`, `V;HAB;PRS`, `V;HAB;PST` | identity |
+| `V;PRS` | prefix `ŋ` |
+| `V;HAB;FUT` | prefix `baa` |
+| `V;NEG;PRS`, `V;HAB;NEG;PST`, `V;HAB;NEG;FUT` | suffix `ee` |
+| `V;HAB;NEG;PRS` | suffix `ko` |
+
+**Design:**
+- The FST is a union of 9 paths, one per bundle. Each path reads back the bracketed feature tags identically (`'[V]' '[HAB]' …`), then transforms the lemma characters.
+- Every character/feature is an atomic quoted symbol (single-quote quoting), so the input tokenizes cleanly — the alphabet includes the space in the multiword verb `ye nkunim` and the Ga graphemes `ŋ ɔ ɛ`.
+- The shared copy-sublanguage (`Sigma*`) lets `minimize()` collapse the whole machine to just **15 states**.
+- Saved via `to_fomastring()` → `test.foma`.
+
+Correctness (accuracy) was the priority and it's perfect; compactness came for free at 15 states. This used 1 of the 10 grading runs.

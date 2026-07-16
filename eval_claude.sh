@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-export LANG="$1"
-export DATASET="$2"
+export DATASET="$1"
+export LANG="$2"
 : "${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY in your environment}"
 
 prompt="Write a script called build_fst.py using the PyFoma library, which is already installed in the system python, that creates and saves an FST for the provided data. The primary goal is to produce an FST that is accurate, with a secondary goal of making the FST as compact as possible (minimal number of states).
@@ -25,9 +25,9 @@ AGENT="claude"
 # claude-haiku-4-5-20251001, claude-fable-5.
 MODEL="claude-opus-4-8"
 
-OUT="$(pwd)/out/${LANG}"
+OUT="$(pwd)/out/${DATASET}/${LANG}"
 mkdir -p "$OUT"
-RUN_NAME="fst_run_${AGENT}_${LANG}"
+RUN_NAME="fst_run_${AGENT}_${DATASET}_${LANG}"
 
 # Remove the named run container + proxy + networks when we finish (or error).
 cleanup() {
@@ -99,7 +99,7 @@ docker compose run --name "$RUN_NAME" -T agent \
     --verbose --output-format stream-json \
   | tee "$OUT/${AGENT}.log.jsonl" | render || true
 
-# Export artifacts to ./out/$LANG/, prefixed by agent name. docker cp reads via
+# Export artifacts to ./out/$DATASET/$LANG/, prefixed by agent name. docker cp reads via
 # the daemon (root), so it pulls metrics.json out of the 700 root-only /opt/grader
 # without the agent ever being able to read or reset it at runtime.
 echo

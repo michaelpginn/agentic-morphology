@@ -1,0 +1,623 @@
+→ Bash: wc -l /workspace/data/san.trn; echo "---"; head -30 /workspace/data/san.trn
+    22968 /workspace/data/san.trn
+    ---
+    भारत	भारतीभिः	ADJ;INS;FEM;PL
+    ईर्म	ईर्माभ्याम्	N;ABL;DU
+    कुञ्चिका	कुञ्चिकाः	N;ACC;PL
+    गर्जन	गर्जना	N;DAT;SG
+    दण्ड	दण्डः	N;NOM;SG
+    इन्द्र	इन्द्रयोः	N;LOC;DU
+    सुन्दर	सुन्दर	ADJ;VOC;SG
+    मध्यम	मध्यमाः	ADJ;ACC;FEM;PL
+    आख्या	आख्याभ्याम्	N;DAT;DU
+    विशाल	विशालम्	N;NOM;SG
+    ज्ञानकाण्ड	ज्ञानकाण्डात्	N;ABL;SG
+    बादाम	बादामौ	N;ACC;DU
+    फेन	फेनानि	N;VOC;PL
+    रसभ	रसभाः	N;VOC;PL
+    क्रिया	क्रिययोः	N;GEN;DU
+    अङ्गुष्ठ	अङ्गुष्ठयोः	N;GEN;DU
+    तायु	तायुभिः	N;INS;PL
+    नड	नडानि	N;ACC;PL
+    यव	यवेषु	N;LOC;PL
+    शस्ति	शस्त्या	N;INS;SG
+    स्वागम	स्वागमात्	N;ABL;SG
+    नाटिका	नाटिके	N;VOC;SG
+    गौड	गौडानि	ADJ;ACC;NEUT;PL
+    ह्रस्व	ह्रस्वानि	ADJ;ACC;NEUT;PL
+    बुद्धि	बुद्धी	N;VOC;DU
+    व्याहृति	व्याहृतीनाम्	N;GEN;PL
+    चरण	चरणम्	N;NOM;SG
+    ज्योतिष	ज्योतिषाः	N;NOM;PL
+    नभ्य	नभ्ये	N;LOC;SG
+    अगुण	अगुणौ	N;ACC;DU
+→ Bash: python -c "import pyfoma; print(pyfoma.__file__); print(dir(pyfoma))"
+    /usr/local/lib/python3.11/site-packages/pyfoma/__init__.py
+    ['FST', 'Paradigm', 'State', 'Transition', '__author__', '__builtins__', '__cached__', '__copyright__', '__credits__', '__doc__', '__email__', '__file__', '__license__', '__loader__', '__maintainer__', '__name__', '__package__', '__path__', '__spec__', '__status__', '__version__', '_private', 'algorithms', 'atomic', 'concatenate', 'context_restrict', 'determinize', 'flag', 'fst', 'ignore', 'invert', 'minimize', 'paradigm', 'project', 're', 'reverse', 'rewrite', 'to_regex']
+→ Bash: python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] print('n rows', len(rows)) fea…
+    n rows 22968
+    num distinct featsets 120
+    623 N;DAT;SG
+    604 N;LOC;SG
+    582 N;ABL;SG
+    573 N;NOM;PL
+    571 N;VOC;DU
+    570 N;GEN;SG
+    566 N;VOC;PL
+    564 N;ACC;PL
+    562 N;ACC;DU
+    560 N;NOM;SG
+    549 N;INS;SG
+    548 N;ACC;SG
+    546 N;VOC;SG
+    545 N;GEN;DU
+    542 N;NOM;DU
+    538 N;LOC;DU
+    528 N;LOC;PL
+    527 N;GEN;PL
+    525 N;ABL;DU
+    522 N;INS;PL
+    ---lemmas---
+    distinct lemmas 917
+    lemmas with >1 row 917
+→ Bash: python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0     whil…
+    last 1 chars: (0.8733455242075931, 2856)
+    last 2 chars: (0.9157088122605364, 11584)
+    last 3 chars: (0.9474486241727621, 17982)
+    full lemma: (0.968521421107628, 22245)
+→ Bash: python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0     whil…
+    === N;NOM;SG
+      -'' +'ः'  x333  eg दण्ड->दण्डः
+      -'' +'म्'  x106  eg विशाल->विशालम्
+      -'' +''  x98  eg तन्त्री->तन्त्री
+      -'ृ' +'ा'  x5  eg धातृ->धाता
+      -'न्' +''  x4  eg अकर्मन्->अकर्म
+      -'स्' +'ः'  x3  eg श्रवस्->श्रवः
+      -'ीवन्मुक्ति' +'िवन्मुक्तिः'  x1  eg जीवन्मुक्ति->जिवन्मुक्तिः
+      -'्णु' +'णुः'  x1  eg विष्णु->विषणुः
+      -'्र' +'रम्'  x1  eg नक्षत्र->नक्षतरम्
+      -'च' +'ः'  x1  eg रोच->रोः
+      -'' +'िः'  x1  eg दुन्दुभि->दुन्दुभििः
+      -'' +'ी'  x1  eg पाप->पापी
+    === N;DAT;SG
+      -'' +'ाय'  x234  eg रसभ->रसभाय
+      -'' +'ा'  x125  eg गर्जन->गर्जना
+      -'ि' +'ये'  x61  eg प्रशस्ति->प्रशस्तये
+      -'' +'यै'  x61  eg पूर्णिमा->पूर्णिमायै
+      -'ि' +'्यै'  x38  eg हति->हत्यै
+      -'ी' +'्यै'  x26  eg बिडाली->बिडाल्यै
+      -'ु' +'वे'  x24  eg अगुरु->अगुरवे
+      -'' +'ने'  x13  eg जानु->जानुने
+      -'ू' +'्वै'  x4  eg तनू->तन्वै
+      -'ृ' +'्रे'  x4  eg दातृ->दात्रे
+      -'्' +'े'  x4  eg अनस्->अनसे
+      -'' +'णे'  x4  eg द्रु->द्रुणे
+    === N;INS;PL
+      -'' +'ैः'  x314  eg ब्रह्मवेद->ब्रह्मवेदैः
+      -'' +'भिः'  x189  eg तायु->तायुभिः
+      -'न्' +'भिः'  x4  eg नामन्->नामभिः
+      -'स्' +'ोभिः'  x2  eg श्रवस्->श्रवोभिः
+      -'त' +'क्नीभिः'  x1  eg पलित->पलिक्नीभिः
+      -'्वा' +'वाभिः'  x1  eg अश्वा->अशवाभिः
+      -'' +'ीभिः'  x1  eg पाप->पापीभिः
+      -'ीवन्मुक्ति' +'िवन्मुक्तिभिः'  x1  eg जीवन्मुक्ति->जिवन्मुक्तिभिः
+      -'्र' +'रैः'  x1  eg नक्षत्र->नक्षतरैः
+      -'ी' +'िभिः'  x1  eg नारी->नारिभिः
+      -'' +'िभिः'  x1  eg दुन्दुभि->दुन्दुभििभिः
+      -'खु' +'क्हुभिः'  x1  eg आखु->आक्हुभिः
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    last2>last1>feat 0.8315
+    last3>2>1>feat 0.824
+    last1>feat 0.849
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    per-lemma-class held-out acc: 0.8755
+    train fit: 0.8876383059900801
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    lemma vclass dist: [('a', 616), ('ि', 97), ('ा', 89), ('ु', 51), ('ी', 37), ('C', 13), ('ृ', 8), ('ू', 5), ('ो', 1)]
+    gender dist: Counter({'m': 319, '?': 275, 'n': 237, 'f': 86})
+    train fit with (feat,vclass,gender): 0.8854493207941484 keys 912
+    164 ('N;INS;SG', 'a', 'm') [((0, 'ेन'), 137), ((0, 'ेण'), 26), ((1, 'क्न्या'), 1)]
+    161 ('N;GEN;PL', 'a', 'm') [((0, 'ानाम्'), 133), ((0, 'ाणाम्'), 26), ((0, 'ीनाम्'), 1)]
+    137 ('N;VOC;DU', 'a', 'n') [((0, 'े'), 104), ((0, 'ौ'), 31), ((1, 'ौ'), 1)]
+    137 ('N;NOM;SG', 'a', 'n') [((0, 'म्'), 106), ((0, 'ः'), 30), ((1, 'ः'), 1)]
+    137 ('N;NOM;PL', 'a', 'n') [((0, 'ानि'), 89), ((0, 'ाः'), 33), ((0, 'ाणि'), 14)]
+    137 ('N;DAT;SG', 'a', 'n') [((0, 'ा'), 108), ((0, 'ाय'), 27), ((0, '्यै'), 1)]
+    129 ('N;ACC;DU', 'a', 'n') [((0, 'े'), 95), ((0, 'ौ'), 31), ((1, 'े'), 1)]
+    127 ('N;NOM;DU', 'a', 'n') [((0, 'े'), 92), ((0, 'ौ'), 33), ((1, 'े'), 1)]
+    125 ('N;VOC;PL', 'a', 'n') [((0, 'ानि'), 75), ((0, 'ाः'), 32), ((0, 'ाणि'), 16)]
+    123 ('N;ACC;PL', 'a', 'n') [((0, 'ानि'), 76), ((0, 'ान्'), 29), ((0, 'ाणि'), 16)]
+    107 ('N;INS;SG', 'a', 'n') [((0, 'ेन'), 88), ((0, 'ेण'), 17), ((0, '्या'), 1)]
+    104 ('N;GEN;PL', 'a', 'n') [((0, 'ानाम्'), 87), ((0, 'ाणाम्'), 14), ((1, 'ानाम्'), 2)]
+    76 ('N;ABL;SG', 'ि', 'm') [((1, 'ेः'), 42), ((1, '्याः'), 27), ((0, 'ेः'), 1)]
+    73 ('N;LOC;SG', 'ि', 'm') [((1, 'ौ'), 41), ((1, '्याम्'), 24), ((0, 'े'), 1)]
+    73 ('N;GEN;SG', 'ि', 'm') [((1, 'ेः'), 41), ((1, '्याः'), 27), ((3, 'तेः'), 1)]
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    gender dist Counter({'n': 730, 'm': 116, 'f': 49, '?': 22})
+    train fit (feat,vclass,gender,hasR): 0.8699494949494949 keys 1427
+    156 ('N;VOC;DU', ('a', 'n', False)) [((0, 'ौ'), 89), ((0, 'े'), 66), ((0, '्यौ'), 1)]
+    155 ('N;DAT;SG', ('a', 'n', False)) [((0, 'ाय'), 90), ((0, 'ा'), 63), ((0, '्यै'), 1)]
+    154 ('N;NOM;PL', ('a', 'n', False)) [((0, 'ाः'), 91), ((0, 'ानि'), 58), ((0, 'ाणि'), 3)]
+    153 ('N;ACC;DU', ('a', 'n', False)) [((0, 'ौ'), 90), ((0, 'े'), 61), ((1, 'े'), 1)]
+    151 ('N;NOM;SG', ('a', 'n', False)) [((0, 'ः'), 95), ((0, 'म्'), 55), ((0, 'ी'), 1)]
+    148 ('N;VOC;PL', ('a', 'n', True)) [((0, 'ाः'), 93), ((0, 'ानि'), 33), ((0, 'ाणि'), 20)]
+    144 ('N;VOC;PL', ('a', 'n', False)) [((0, 'ाः'), 91), ((0, 'ानि'), 49), ((0, 'ाणि'), 2)]
+    143 ('N;NOM;DU', ('a', 'n', False)) [((0, 'ौ'), 91), ((0, 'े'), 50), ((1, 'े'), 1)]
+    143 ('N;ACC;PL', ('a', 'n', False)) [((0, 'ान्'), 85), ((0, 'ानि'), 54), ((0, 'ाणि'), 3)]
+    140 ('N;NOM;SG', ('a', 'n', True)) [((0, 'ः'), 87), ((0, 'म्'), 51), ((2, 'रम्'), 1)]
+    140 ('N;ACC;PL', ('a', 'n', True)) [((0, 'ान्'), 89), ((0, 'ानि'), 29), ((0, 'ाणि'), 19)]
+    139 ('N;NOM;PL', ('a', 'n', True)) [((0, 'ाः'), 90), ((0, 'ानि'), 31), ((0, 'ाणि'), 17)]
+    138 ('N;VOC;DU', ('a', 'n', True)) [((0, 'ौ'), 85), ((0, 'े'), 50), ((2, 'रे'), 1)]
+    138 ('N;DAT;SG', ('a', 'n', True)) [((0, 'ाय'), 78), ((0, 'ा'), 58), ((2, 'रा'), 1)]
+    137 ('N;NOM;DU', ('a', 'n', True)) [((0, 'ौ'), 82), ((0, 'े'), 53), ((2, 'रे'), 1)]
+    132 ('N;ACC;DU', ('a', 'n', True)) [((0, 'ौ'), 85), ((0, 'े'), 45), ((0, '्यौ'), 1)]
+    124 ('N;GEN;PL', ('a', 'n', True)) [((0, 'ानाम्'), 83), ((0, 'ाणाम्'), 39), ((1, 'ानाम्'), 1)]
+    122 ('N;INS;SG', ('a', 'n', True)) [((0, 'ेन'), 76), ((0, 'ेण'), 43), ((0, '्या'), 1)]
+    68 ('ADJ;NOM;FEM;PL', ('a', 'n', True)) [((0, 'ाः'), 54), ((0, '्यः'), 12), ((0, 'ाणि'), 1)]
+    68 ('ADJ;ABL;FEM;PL', ('a', 'n', True)) [((0, 'ाभ्यः'), 54), ((0, 'ीभ्यः'), 9), ((0, 'ेभ्यः'), 3)]
+→ Bash: python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0     whil…
+    lexgender dist Counter({'n': 552, 'm': 280, 'f': 50, '?': 35})
+    train fit: 0.865377917102055 keys 839
+    291 ('N;VOC;DU', 'a', 'n') [((0, 'ौ'), 174), ((0, 'े'), 116), ((2, 'रे'), 1)]
+    291 ('N;NOM;PL', 'a', 'n') [((0, 'ाः'), 180), ((0, 'ानि'), 89), ((0, 'ाणि'), 20)]
+    291 ('N;DAT;SG', 'a', 'n') [((0, 'ाय'), 168), ((0, 'ा'), 121), ((2, 'रा'), 1)]
+    289 ('N;VOC;PL', 'a', 'n') [((0, 'ाः'), 183), ((0, 'ानि'), 82), ((0, 'ाणि'), 22)]
+    289 ('N;NOM;SG', 'a', 'n') [((0, 'ः'), 182), ((0, 'म्'), 106), ((2, 'रम्'), 1)]
+    281 ('N;ACC;DU', 'a', 'n') [((0, 'ौ'), 174), ((0, 'े'), 106), ((1, 'े'), 1)]
+    279 ('N;ACC;PL', 'a', 'n') [((0, 'ान्'), 173), ((0, 'ानि'), 83), ((0, 'ाणि'), 22)]
+    277 ('N;NOM;DU', 'a', 'n') [((0, 'ौ'), 172), ((0, 'े'), 103), ((2, 'रे'), 1)]
+    260 ('N;INS;SG', 'a', 'n') [((0, 'ेन'), 213), ((0, 'ेण'), 46), ((2, 'रेण'), 1)]
+    256 ('N;GEN;PL', 'a', 'n') [((0, 'ानाम्'), 213), ((0, 'ाणाम्'), 42), ((1, 'ानाम्'), 1)]
+    127 ('ADJ;NOM;FEM;PL', 'a', 'f') [((0, 'ाः'), 102), ((0, '्यः'), 20), ((0, 'ानि'), 4)]
+    121 ('ADJ;NOM;FEM;SG', 'a', 'f') [((0, 'ा'), 96), ((0, 'ी'), 19), ((0, 'म्'), 3)]
+    121 ('ADJ;INS;MASC;SG', 'a', 'm') [((0, 'ेन'), 95), ((0, 'ेण'), 25), ((4, 'द्धेन'), 1)]
+    121 ('ADJ;INS;FEM;DU', 'a', 'f') [((0, 'ाभ्याम्'), 101), ((0, 'ीभ्याम्'), 19), ((2, 'गाभ्याम्'), 1)]
+    121 ('ADJ;ACC;NEUT;PL', 'a', 'n') [((0, 'ानि'), 91), ((0, 'ाणि'), 23), ((0, 'ाः'), 4)]
+    120 ('ADJ;LOC;FEM;PL', 'a', 'f') [((0, 'ासु'), 97), ((0, 'ीषु'), 16), ((0, 'ेषु'), 4)]
+    119 ('ADJ;GEN;MASC;PL', 'a', 'm') [((0, 'ानाम्'), 97), ((0, 'ाणाम्'), 21), ((2, 'गाणाम्'), 1)]
+    118 ('ADJ;ABL;FEM;PL', 'a', 'f') [((0, 'ाभ्यः'), 95), ((0, 'ीभ्यः'), 15), ((0, 'ेभ्यः'), 5)]
+    117 ('ADJ;VOC;FEM;SG', 'a', 'f') [((0, 'े'), 92), ((0, 'ि'), 18), ((0, ''), 5)]
+    117 ('ADJ;VOC;FEM;DU', 'a', 'f') [((0, 'े'), 94), ((0, '्यौ'), 18), ((0, 'ौ'), 2)]
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    lexgender dist Counter({'m': 512, 'n': 296, 'f': 71, '?': 38})
+    train fit: 0.8881051898293277 keys 874
+    203 ('N;INS;SG', 'a', 'm') [((0, 'ेन'), 172), ((0, 'ेण'), 30), ((1, 'ेन'), 1)]
+    197 ('N;GEN;PL', 'a', 'm') [((0, 'ानाम्'), 166), ((0, 'ाणाम्'), 30), ((1, 'ानाम्'), 1)]
+    166 ('N;VOC;DU', 'a', 'n') [((0, 'े'), 112), ((0, 'ौ'), 53), ((2, 'रे'), 1)]
+    165 ('N;DAT;SG', 'a', 'n') [((0, 'ा'), 118), ((0, 'ाय'), 45), ((2, 'रा'), 1)]
+    159 ('N;VOC;PL', 'a', 'n') [((0, 'ानि'), 80), ((0, 'ाः'), 55), ((0, 'ाणि'), 22)]
+    155 ('N;ACC;DU', 'a', 'n') [((0, 'े'), 103), ((0, 'ौ'), 51), ((1, 'े'), 1)]
+    154 ('N;ACC;PL', 'a', 'n') [((0, 'ानि'), 84), ((0, 'ान्'), 48), ((0, 'ाणि'), 21)]
+    145 ('N;NOM;PL', 'a', 'n') [((0, 'ानि'), 84), ((0, 'ाः'), 41), ((0, 'ाणि'), 18)]
+    145 ('N;NOM;DU', 'a', 'n') [((0, 'े'), 105), ((0, 'ौ'), 38), ((2, 'रे'), 1)]
+    140 ('N;NOM;SG', 'a', 'n') [((0, 'म्'), 105), ((0, 'ः'), 34), ((2, 'रम्'), 1)]
+    130 ('N;GEN;PL', 'a', 'n') [((0, 'ानाम्'), 106), ((0, 'ाणाम्'), 23), ((1, 'ानाम्'), 1)]
+    127 ('N;INS;SG', 'a', 'n') [((0, 'ेन'), 102), ((0, 'ेण'), 24), ((2, 'रेण'), 1)]
+    127 ('ADJ;NOM;FEM;PL', 'a', 'f') [((0, 'ाः'), 102), ((0, '्यः'), 20), ((0, 'ानि'), 4)]
+    121 ('ADJ;NOM;FEM;SG', 'a', 'f') [((0, 'ा'), 96), ((0, 'ी'), 19), ((0, 'म्'), 3)]
+    121 ('ADJ;INS;MASC;SG', 'a', 'm') [((0, 'ेन'), 95), ((0, 'ेण'), 25), ((4, 'द्धेन'), 1)]
+    121 ('ADJ;INS;FEM;DU', 'a', 'f') [((0, 'ाभ्याम्'), 101), ((0, 'ीभ्याम्'), 19), ((2, 'गाभ्याम्'), 1)]
+    121 ('ADJ;ACC;NEUT;PL', 'a', 'n') [((0, 'ानि'), 91), ((0, 'ाणि'), 23), ((0, 'ाः'), 4)]
+    120 ('ADJ;LOC;FEM;PL', 'a', 'f') [((0, 'ासु'), 97), ((0, 'ीषु'), 16), ((0, 'ेषु'), 4)]
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    held-out: 0.0
+    train fit full: 0.0
+    keys in most-specific model: 1650
+→ Bash: python3 -c " import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i=0  …
+    held-out: 0.881
+    train fit: 0.9080895158481366 keys 1650
+→ Bash: python3 << 'EOF' import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i…
+    total error-in-majority: 1250
+    err47/81 ('N;VOC;PL', 'a', 'n', True, '-') [((0, 'ानि'), 34), ((0, 'ाः'), 26), ((0, 'ाणि'), 20)]
+    err42/72 ('N;ACC;PL', 'a', 'n', True, '-') [((0, 'ानि'), 30), ((0, 'ान्'), 23), ((0, 'ाणि'), 18)]
+    err38/67 ('N;NOM;PL', 'a', 'n', True, '-') [((0, 'ानि'), 29), ((0, 'ाः'), 22), ((0, 'ाणि'), 15)]
+    err32/78 ('N;VOC;PL', 'a', 'n', False, '-') [((0, 'ानि'), 46), ((0, 'ाः'), 29), ((0, 'ाणि'), 2)]
+    err29/96 ('N;INS;SG', 'a', 'm', True, '-') [((0, 'ेन'), 67), ((0, 'ेण'), 28), ((1, 'ेन'), 1)]
+    err28/100 ('N;GEN;PL', 'a', 'm', True, '-') [((0, 'ानाम्'), 72), ((0, 'ाणाम्'), 27), ((1, 'ानाम्'), 1)]
+    err28/93 ('N;VOC;DU', 'a', 'n', False, '-') [((0, 'े'), 65), ((0, 'ौ'), 28)]
+    err28/88 ('N;ACC;DU', 'a', 'n', False, '-') [((0, 'े'), 60), ((0, 'ौ'), 27), ((1, 'े'), 1)]
+    err28/82 ('N;ACC;PL', 'a', 'n', False, '-') [((0, 'ानि'), 54), ((0, 'ान्'), 25), ((0, 'ाणि'), 3)]
+    err27/87 ('N;DAT;SG', 'a', 'n', False, '-') [((0, 'ा'), 60), ((0, 'ाय'), 26), ((1, 'ा'), 1)]
+    err27/63 ('ADJ;ACC;NEUT;PL', 'a', 'n', True, '-') [((0, 'ानि'), 36), ((0, 'ाणि'), 23), ((0, 'ीः'), 1)]
+    err26/73 ('N;VOC;DU', 'a', 'n', True, '-') [((0, 'े'), 47), ((0, 'ौ'), 25), ((2, 'रे'), 1)]
+    err26/60 ('ADJ;INS;MASC;SG', 'a', 'm', True, '-') [((0, 'ेन'), 34), ((0, 'ेण'), 25), ((4, 'द्धेन'), 1)]
+    err25/64 ('ADJ;INS;NEUT;SG', 'a', 'n', True, '-') [((0, 'ेन'), 39), ((0, 'ेण'), 22), ((2, 'गेण'), 1)]
+    err25/60 ('ADJ;VOC;NEUT;PL', 'a', 'n', True, '-') [((0, 'ानि'), 35), ((0, 'ाणि'), 23), ((0, '्यः'), 1)]
+    err25/55 ('ADJ;NOM;NEUT;PL', 'a', 'n', True, '-') [((0, 'ानि'), 30), ((0, 'ाणि'), 22), ((0, '्यः'), 1)]
+    err24/67 ('N;ACC;DU', 'a', 'n', True, '-') [((0, 'े'), 43), ((0, 'ौ'), 24)]
+    err24/57 ('ADJ;GEN;NEUT;PL', 'a', 'n', True, '-') [((0, 'ानाम्'), 33), ((0, 'ाणाम्'), 22), ((0, 'ीणाम्'), 1)]
+    err23/78 ('N;NOM;SG', 'a', 'n', False, '-') [((0, 'म्'), 55), ((0, 'ः'), 23)]
+    err23/78 ('N;NOM;PL', 'a', 'n', False, '-') [((0, 'ानि'), 55), ((0, 'ाः'), 19), ((0, 'ाणि'), 3)]
+    err23/60 ('N;INS;SG', 'a', 'n', True, '-') [((0, 'ेन'), 37), ((0, 'ेण'), 22), ((2, 'रेण'), 1)]
+    err22/58 ('ADJ;GEN;MASC;PL', 'a', 'm', True, '-') [((0, 'ानाम्'), 36), ((0, 'ाणाम्'), 21), ((2, 'गाणाम्'), 1)]
+    err22/52 ('ADJ;GEN;FEM;PL', 'a', 'f', True, 'a') [((0, 'ानाम्'), 30), ((0, 'ाणाम्'), 19), ((2, 'गाणाम्'), 1)]
+    err21/61 ('N;GEN;PL', 'a', 'n', True, '-') [((0, 'ानाम्'), 40), ((0, 'ाणाम्'), 21)]
+    err20/78 ('N;DAT;SG', 'a', 'n', True, '-') [((0, 'ा'), 58), ((0, 'ाय'), 19), ((2, 'रा'), 1)]
+→ Bash: python3 << 'EOF' import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i…
+    train fit: 0.9155781957506095 keys 1415
+    resid err 983
+    32/69 ('N;GEN;PL', 'a', 'm', True, '-') [((0, 'ानाम्'), 37), ((0, 'ाणाम्'), 32)]
+    32/65 ('N;INS;SG', 'a', 'm', True, '-') [((0, 'ेन'), 33), ((0, 'ेण'), 32)]
+    31/61 ('N;DAT;SG', 'ि', 'f', False, '-') [((1, '्यै'), 30), ((1, 'ये'), 26), ((10, 'िवन्मुक्त्यै'), 1)]
+    29/58 ('N;GEN;SG', 'ि', 'f', False, '-') [((1, '्याः'), 29), ((1, 'ेः'), 25), ((3, 'तेः'), 1)]
+    29/55 ('N;ABL;SG', 'ि', 'f', False, '-') [((1, '्याः'), 26), ((1, 'ेः'), 23), ((0, 'नः'), 2)]
+    24/51 ('N;LOC;SG', 'ि', 'f', False, '-') [((1, 'ौ'), 27), ((1, '्याम्'), 19), ((10, 'िवन्मुक्तौ'), 1)]
+    21/38 ('N;VOC;PL', 'a', 'n', True, '-') [((0, 'ानि'), 17), ((0, 'ाणि'), 15), ((0, 'ाः'), 5)]
+    20/34 ('N;NOM;PL', 'a', 'n', True, '-') [((0, 'ानि'), 14), ((0, 'ाणि'), 12), ((0, 'ाः'), 7)]
+    19/33 ('N;ACC;PL', 'a', 'n', True, '-') [((0, 'ाणि'), 14), ((0, 'ानि'), 12), ((0, 'ान्'), 6)]
+    15/36 ('ADJ;INS;NEUT;SG', 'a', 'n', True, '-') [((0, 'ेण'), 21), ((0, 'ेन'), 13), ((2, 'गेण'), 1)]
+    14/80 ('N;ACC;DU', 'a', 'n', False, '-') [((0, 'े'), 66), ((0, 'ौ'), 13), ((1, 'े'), 1)]
+    14/70 ('N;VOC;PL', 'a', 'n', False, '-') [((0, 'ानि'), 56), ((0, 'ाः'), 12), ((1, 'ानि'), 1)]
+    14/29 ('N;INS;SG', 'a', 'n', True, '-') [((0, 'ेण'), 15), ((0, 'ेन'), 13), ((2, 'रेण'), 1)]
+    13/72 ('N;NOM;PL', 'a', 'n', False, '-') [((0, 'ानि'), 59), ((0, 'ाः'), 10), ((0, 'ाणि'), 2)]
+    13/28 ('N;INS;SG', 'ि', 'm', False, '-') [((0, 'ना'), 15), ((1, '्या'), 10), ((0, '्या'), 1)]
+    13/26 ('N;GEN;PL', 'a', 'n', True, '-') [((0, 'ानाम्'), 13), ((0, 'ाणाम्'), 13)]
+    12/71 ('N;ACC;PL', 'a', 'n', False, '-') [((0, 'ानि'), 59), ((0, 'ान्'), 10), ((0, 'ाणि'), 2)]
+    12/30 ('ADJ;GEN;FEM;PL', 'a', 'f', True, 'a') [((0, 'ाणाम्'), 18), ((0, 'ानाम्'), 10), ((2, 'गाणाम्'), 1)]
+→ Bash: python3 << 'EOF' import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i…
+    NN held-out: 0.862
+→ Bash: python3 << 'EOF' import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] def lcp(a,b):     i…
+    CV held-out accs: [0.8805, 0.8945, 0.9065] mean 0.8938333333333333
+    train fit: 0.921455938697318
+→ Bash: python3 << 'EOF' from pyfoma import FST help(FST.re) print('=== methods ===') print([m for m in dir(FST) if not m.startswith('__')]) EOF
+    Help on method regex in module pyfoma.fst:
+    
+    regex(regularexpression, defined=None, functions=None, multichar_symbols=None) class method of pyfoma.fst.FST
+        Compile a regular expression and return the resulting FST.
+        Keyword arguments:
+        defined -- a dictionary of defined FSTs that the compiler can access whenever
+                   a defined network is referenced in the regex, e.g. $vowel
+        functions -- a set of Python functions that the compiler can access when a function
+                    is referenced in the regex, e.g. $^myfunc(...)
+    
+    === methods ===
+    ['_equivalence_view', '_equivalent_by_symmetric_difference', '_identity_advance_discrepancy', '_identity_discrepancy_scan', '_path_encode_transducer', '_prune_alphabet_to_seen', 'add_weight', 'ambiguous_domain', 'ambiguous_part', 'analyze', 'apply', 'arccount', 'arity', 'become', 'character_ranges', 'cleanup_sigma', 'complement', 'compose', 'concatenate', 'context_restrict', 'copy_filtered', 'copy_mod', 'cross_product', 'determinize', 'determinize_as_dfa', 'determinize_unweighted', 'difference', 'eliminate_flags', 'epsilon_remove', 'eq', 'filter_accessible', 'filter_coaccessible', 'from_fomastring', 'from_strings', 'fromdict', 'generate', 'has_weights', 'hash', 'ignore', 'intersection', 'invert', 'is_deterministic', 'is_equivalent', 'is_functional', 'is_identity', 'is_unambiguous', 'kleene_closure', 'kleene_plus', 'kleene_star', 'label_states_topology', 'load', 'load_foma', 'map_labels', 'merge_equivalent_states', 'minimize', 'minimize_as_dfa', 'minimize_brz', 'nonidentity_domain', 'number_unnamed_states', 'optional', 'pathcount', 'product', 'project', 'push_weights', 're', 'regex', 'render', 'reverse', 'reverse_e', 'rewrite', 'rlg', 'save', 'save_att', 'save_foma', 'shuffle', 'to_fomastring', 'to_regex', 'todict', 'tojs', 'tokenize_against_alphabet', 'trim', 'unambiguous_part', 'union', 'view', 'words', 'words_cheapest', 'words_nbest']
+→ Bash: python3 << 'EOF' from pyfoma import FST import inspect for m in ['from_strings','fromdict','from_fomastring','to_fomastring','minimize','un…
+    === from_strings
+        @classmethod
+        def from_strings(cls, strings, multichar_symbols=None):
+            """Create an automaton that accepts words in the iterable 'strings'."""
+            Grammar = {"Start": ((w, "#") for w in strings)}
+            lex = FST.rlg(Grammar, "Start", multichar_symbols=multichar_symbols)
+            return lex.determinize_as_dfa().minimize().label_states_topology()
+    
+    === fromdict
+        @classmethod
+        def fromdict(cls, fstdict: Dict) -> "FST":
+            """Recreate an FST from dictionary form."""
+            def _unescape_sym(sym: str) -> str:
+                out = []
+                i = 0
+                while i < len(sym):
+                    if sym[i] == "\\" and i + 1 < len(sym):
+                        out.append(sym[i + 1])
+                        i += 2
+                    else:
+                        out.append(sym[i])
+                        i += 1
+                return "".join(out)
+    
+            def _final_weight(raw) -> float:
+                if isinstance(raw, bool):
+                    return 0.0 if raw else float("inf")
+                if isinstance(raw, int):
+                    return 0.0 if raw == 1 else float(raw)
+                return float(raw)
+    
+            fst = FST(alphabet=set(fstdict["alphabet"].keys()))
+            
+    === from_fomastring
+        @classmethod
+        def from_fomastring(cls, fomastr: str) -> 'FST':
+            """
+            =====================
+            Support for foma i/o
+            =====================
+    
+            The foma file format is a simple string representation of an FST. This representation can be compressed
+            with gzip if stored in a file. A foma-file may contain multiple FSTs, each with its own name (a string).
+    
+            With some very minor limitations, the foma file format can be used to save/load FSTs in pyfoma as well.
+    
+            We provide four methods for interchange with foma; two for converting an FST object
+            to a string and vice versa, and two for loading/saving foma-files:
+    
+            to_fomastring(fst: 'FST', fstname:str) -> str
+            from_fomastring(fomastr: str) -> 'FST'
+    
+            load_foma(s
+    === to_fomastring
+        def to_fomastring(self, fstname = None) -> str:
+            """Converts an FST to foma's string-based representation."""
+    
+            NO, YES, UNKNOWN = 0, 1, 2
+            outfst = self.label_states_topology()
+            arity_ = outfst.arity()
+            arccount_ = outfst.arccount()
+            statecount_ = len(outfst.states)
+            finalcount_ = len(outfst.finalstates)
+            pathcount_ = outfst.pathcount()
+            is_deterministic_ = YES if outfst.is_deterministic() else NO
+            is_pruned_ = UNKNOWN
+            is_minimized_ = UNKNOWN
+            is_epsilon_free_ = NO if any(label == ('',) for s in outfst.states for label, _ in s.all_transitions()) else YES
+            is_loop_free_ = NO if pathcount_ == -1 else YES
+            weighted_ = YES if outfst.has_weights() else NO
+            extras_ = weighted_ << 6
+    
+       
+    === minimize
+        def minimize(self) -> 'FST':
+            """Minimize by constrained reverse subset construction, Hopcroft-ish."""
+            reverse_index = atomic.create_reverse_index(self.states)
+            finalset, nonfinalset = self.finalstates.copy(), self.states - self.finalstates
+            initialpartition = [x for x in (finalset, nonfinalset) if len(x) > 0]
+            P = partition_refinement.PartitionRefinement(initialpartition)
+            Agenda = {id(x) for x in (finalset, nonfinalset) if len(x) > 0}
+            while Agenda:
+                S = P.sets[Agenda.pop()] # convert id to the actual set it corresponds to
+                for label, sourcestates in atomic.find_sourcestates(reverse_index, S):
+                    splits = P.refine(sourcestates) # returns list of (A & S, A - S) tuples
+                    Agenda |= {new fo
+    === union
+        @harmonize_alphabet
+        def union(self, fst2: 'FST') -> 'FST':
+            """Epsilon-free calculation of union of self and fst2."""
+            fst1 = self.__copy__()
+            mapping = {k:State() for k in fst1.states | fst2.states}
+            newfst = FST() # Get new initial state
+            newfst.states = set(mapping.values()) | {newfst.initialstate}
+            # Copy all transitions from old initial states to new initial state
+            for lbl, t in itertools.chain(fst1.initialstate.all_transitions(), fst2.initialstate.all_transitions()):
+                newfst.initialstate.add_transition(mapping[t.targetstate], lbl, t.weight)
+            # Also add all transitions from old FSMs to new FSM
+            for s, lbl, t in itertools.chain(all_transitions(fst1.states), all_transitions(fst2.states)):
+                mappi
+→ Bash: python3 << 'EOF' from pyfoma import FST f=FST.re("'[PL]':'[PL]' 'r':'r' 'u':'x'") import json d=f.todict() print(json.dumps(d,indent=1,ensu…
+    {
+     "transitions": {
+      "0": {
+       "[PL]": [
+        1
+       ]
+      },
+      "1": {
+       "r": [
+        2
+       ]
+      },
+      "2": {
+       "u|x": [
+        3
+       ]
+      }
+     },
+     "alphabet": {
+      "[PL]": 3,
+      "r": 4,
+      "u": 5,
+      "x": 6
+     },
+     "finals": {
+      "3": 0.0
+     }
+    }
+    === apply ===
+    ['[PL]rx']
+    []
+→ Bash: python3 << 'EOF' import collections rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn') if l.strip()] by_lem=collections.default…
+    POS combos of lemmas: Counter({frozenset({'N'}): 721, frozenset({'ADJ'}): 180, frozenset({'N', 'ADJ'}): 16})
+    ADJ n featsets 96
+    N n featsets 24
+    total (lemma,featset) paths to generate: 36504
+    lemma trie nodes: 2684 distinct lemmas 917
+    total lemma chars 4689
+→ Bash: python3 << 'EOF' from pyfoma import FST import json # epsilon: output insertion. regex for "":"x" ? f=FST.re("'a':'a' '':'x' 'b':''") print…
+    {"transitions": {"0": {"a": [1]}, "1": {"|x": [2]}, "2": {"b|": [3]}}, "alphabet": {"a": 3, "x": 4, "b": 5}, "finals": {"3": 0.0}}
+    ---determinize/min of union of two paths sharing prefix---
+    {"transitions": {"0": {"[PL]": [1]}, "1": {"r": [2]}, "2": {"u|": [3]}, "3": {"|X": [4]}, "4": {"|Y": [5]}}, "alphabet": {"[PL]": 3, "r": 4, "u": 5, "X": 6, "Y": 7}, "finals": {"5": 0.0}}
+    apply raw: ['[PL]rXY']
+→ Bash: python3 << 'EOF' from pyfoma import FST import inspect print(inspect.getsource(FST.fromdict)) EOF
+        @classmethod
+        def fromdict(cls, fstdict: Dict) -> "FST":
+            """Recreate an FST from dictionary form."""
+            def _unescape_sym(sym: str) -> str:
+                out = []
+                i = 0
+                while i < len(sym):
+                    if sym[i] == "\\" and i + 1 < len(sym):
+                        out.append(sym[i + 1])
+                        i += 2
+                    else:
+                        out.append(sym[i])
+                        i += 1
+                return "".join(out)
+    
+            def _final_weight(raw) -> float:
+                if isinstance(raw, bool):
+                    return 0.0 if raw else float("inf")
+                if isinstance(raw, int):
+                    return 0.0 if raw == 1 else float(raw)
+                return float(raw)
+    
+            fst = FST(alphabet=set(fstdict["alphabet"].keys()))
+            states: List[State] = []
+    
+            def add_up_to(state_idx: int):
+                while len(states) <= state_idx:
+                    state = State()
+                    idx = len(states)
+                    states.append(state)
+                    fst.states.add(state)
+                    if idx == 0:
+                        fst.initialstate = state
+                    if idx in fstdict["finals"]:
+                        fst.finalstates.add(state)
+                        state.finalweight = _final_weight(fstdict["finals"][idx])
+                    elif str(idx) in fstdict["finals"]:
+                        fst.finalstates.add(state)
+                        state.finalweight = _final_weight(fstdict["finals"][str(idx)])
+                return states[state_idx]
+    
+            state_indices = set()
+            for src, arcs in fstdict["transitions"].items():
+                state_indices.add(int(src))
+                for targets in arcs.values():
+                    for target in targets:
+                        if isinstance(target, (tuple, list)):
+                            dest = target[0]
+                        else:
+                            dest = target
+                        state_indices.add(int(dest))
+            state_indices |= {int(k) for k in fstdict["finals"].keys()}
+            if state_indices:
+                add_up_to(max(state_indices))
+    
+            for src, arcs in fstdict["transitions"].items():
+                src_state = add_up_to(int(src))
+                for tlabel, targets in arcs.items():
+                    labels = tuple(_unescape_sym(sym)
+                                   for sym
+                                   in pyre.split(r"(?<!\\)\|", tlabel, maxsplit=1))
+                    for target in targets:
+                        if isinstance(target, (tuple, list)):
+                            dest, weight = target
+                        else:
+                            dest = target
+                            weight = 0.0
+                        dest_state = add_up_to(int(dest))
+                        src_state.add_transition(dest_state, labels, weight)
+            return fst
+Now I understand the FST format. Let me write the script.
+→ Write: /workspace/build_fst.py
+    File created successfully at: /workspace/build_fst.py (file state is current in your context — no need to Read it back)
+→ Bash: time python3 build_fst.py
+    Generated 36504 (input, output) pairs
+    Trie states: 234516
+    Minimized states: 24089
+    Saved FST to test.foma
+    
+    real	0m3.026s
+    user	0m2.968s
+    sys	0m0.057s
+→ Bash: python3 << 'EOF' from pyfoma import FST import collections,random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn',encoding='u…
+    FST matches TRUE form on 281 / 300
+    IN [N][LOC][SG]आखु
+      OUT ['[N][LOC][SG]आखौ']
+      EXP [N][LOC][SG]आक्ह्वाम्
+    IN [N][ABL][SG]ओषधि
+      OUT ['[N][ABL][SG]ओषध्याः']
+      EXP [N][ABL][SG]ओषधेः
+    IN [N][INS][SG]राजन्
+      OUT ['[N][INS][SG]राजना']
+      EXP [N][INS][SG]राज्ञा
+    IN [ADJ][NOM][FEM][SG]नलद
+      OUT ['[ADJ][NOM][FEM][SG]नलदा']
+      EXP [ADJ][NOM][FEM][SG]नलदम्
+    IN [N][ABL][SG]रुचि
+      OUT ['[N][ABL][SG]रुच्याः']
+      EXP [N][ABL][SG]रुचेः
+    IN [ADJ][LOC][PL]लघु
+      OUT ['[ADJ][LOC][PL]लघुषु']
+      EXP [ADJ][LOC][PL]लघ्वीषु
+    IN [N][GEN][DU]आखु
+      OUT ['[N][GEN][DU]आख्वोः']
+      EXP [N][GEN][DU]आक्ह्वोः
+    IN [ADJ][ACC][FEM][SG]पुरंधि
+      OUT ['[ADJ][ACC][FEM][SG]पुरंधिम्']
+      EXP [ADJ][ACC][FEM][SG]पुरंधि
+→ Bash: python3 << 'EOF' import collections,random import build_fst as B rows=B.rows random.seed(3); ii=list(range(len(rows))); random.shuffle(ii);…
+    held-out acc 0.9023333333333333
+    91 ('ADJ', 'a')
+    71 ('N', 'a')
+    42 ('N', 'ि')
+    27 ('N', 'ु')
+    24 ('ADJ', 'ु')
+    21 ('N', 'C')
+    6 ('ADJ', 'ि')
+    6 ('N', 'ी')
+    3 ('N', 'ो')
+    1 ('N', 'ा')
+    1 ('N', 'ू')
+→ Bash: python3 << 'EOF' import collections,random,importlib import build_fst as B rows=B.rows; by_lem=B.by_lem # per-lemma retroflex attribute def…
+    retro lemmas 152 / 917
+    CV with per-lemma retro: [0.902, 0.9083333333333333, 0.9106666666666666] mean 0.907
+Per-lemma retroflexion helps (89.4%→90.7% CV). Let me update the script.
+→ Edit: /workspace/build_fst.py
+    The file /workspace/build_fst.py has been updated successfully. (file state is current in your context — no need to Read it back)
+→ Edit: /workspace/build_fst.py
+    The file /workspace/build_fst.py has been updated successfully. (file state is current in your context — no need to Read it back)
+→ Edit: /workspace/build_fst.py
+    The file /workspace/build_fst.py has been updated successfully. (file state is current in your context — no need to Read it back)
+→ Bash: time python3 build_fst.py
+    Generated 36504 (input, output) pairs
+    Trie states: 234501
+    Minimized states: 23887
+    Saved FST to test.foma
+    
+    real	0m3.343s
+    user	0m3.275s
+    sys	0m0.066s
+→ Bash: python3 << 'EOF' from pyfoma import FST import random rows=[l.rstrip('\n').split('\t') for l in open('data/san.trn',encoding='utf-8') if l.…
+    train-fit via FST: 0.9175 multi-output cases 0
+    is_functional: True
+FST is functional, single output per input, train-fit 91.75%. Let me run the grader.
+→ Bash: sudo /opt/grader/grade test.foma --lang san 2>&1 | tail -40
+    चूर्ण	ADJ;ACC;NEUT;DU	[ADJ][ACC][NEUT][DU]चूर्णे	Y
+    मन्दर	ADJ;DAT;NEUT;SG	[ADJ][DAT][NEUT][SG]मन्दरा	Y
+    श्रमण	ADJ;ABL;PL	[ADJ][ABL][PL]श्रमणेभ्यः	N
+    हति	N;VOC;SG	[N][VOC][SG]हते	Y
+    बहुव्रीहि	ADJ;VOC;MASC;DU	[ADJ][VOC][MASC][DU]बहुव्रीही	Y
+    मण्डल	ADJ;LOC;NEUT;DU	[ADJ][LOC][NEUT][DU]मण्डलयोः	Y
+    श्वशुर	N;VOC;PL	[N][VOC][PL]श्वशुराः	Y
+    चूर्ण	ADJ;NOM;NEUT;SG	[ADJ][NOM][NEUT][SG]चूर्णम्	Y
+    पाद	N;ABL;PL	[N][ABL][PL]पादेभ्यः	Y
+    घोर	ADJ;GEN;NEUT;DU	[ADJ][GEN][NEUT][DU]घोरयोः	Y
+    शील	N;INS;SG	[N][INS][SG]शीलेन	Y
+    वेला	N;GEN;SG	[N][GEN][SG]वेलायाः	Y
+    सूक्त	ADJ;NOM;MASC;PL	[ADJ][NOM][MASC][PL]सूक्ताः	Y
+    इदानि	N;NOM;SG	[N][NOM][SG]इदानि	Y
+    पार्वण	ADJ;ACC;FEM;SG	[ADJ][ACC][FEM][SG]पार्वणीम्	Y
+    विशाल	N;NOM;PL	[N][NOM][PL]विशालानि	Y
+    तद्	N;NOM;PL	[N][NOM][PL]तानि	Y
+    आश्रम	N;ACC;PL	[N][ACC][PL]आश्रमाणि	N
+    सुराकार	N;LOC;SG	[N][LOC][SG]सुराकारे	Y
+    स्वर्ग	ADJ;VOC;NEUT;SG	[ADJ][VOC][NEUT][SG]स्वर्ग	Y
+    विपक्ष	ADJ;DAT;FEM;DU	[ADJ][DAT][FEM][DU]विपक्षाभ्याम्	Y
+    सभास्थाणु	N;GEN;PL	[N][GEN][PL]सभास्थाणूनाम्	Y
+    हिम	ADJ;ABL;FEM;PL	[ADJ][ABL][FEM][PL]हिमाभ्यः	Y
+    वृत्त	ADJ;GEN;NEUT;PL	[ADJ][GEN][NEUT][PL]वृत्तानाम्	Y
+    उत्सव	N;INS;PL	[N][INS][PL]उत्सवैः	Y
+    किशोर	N;GEN;PL	[N][GEN][PL]किशोरानाम्	Y
+    वृत्त	ADJ;INS;FEM;SG	[ADJ][INS][FEM][SG]वृत्तया	Y
+    प्राण	N;GEN;DU	[N][GEN][DU]प्राणयोः	Y
+    सोम	ADJ;ABL;NEUT;PL	[ADJ][ABL][NEUT][PL]सोमेभ्यः	Y
+    वशगा	N;NOM;SG	[N][NOM][SG]वशगा	Y
+    अभिनय	N;ABL;DU	[N][ABL][DU]अभिनयाभ्याम्	Y
+    क्षौर	N;LOC;DU	[N][LOC][DU]क्षौरयोः	Y
+    गर्जन	N;VOC;DU	[N][VOC][DU]गर्जने	Y
+    पुरोहित	ADJ;GEN;NEUT;PL	[ADJ][GEN][NEUT][PL]पुरोहितानाम्	Y
+    श्रमण	N;INS;DU	[N][INS][DU]श्रमणाभ्याम्	Y
+    ===============
+    Final score (dev): 2897/3188
+    ===============
+    Final score (test): 5643/6272
+    Wrote to /opt/grader/metrics.json
+Dev 90.9%, test 90.0%. Let me analyze gender misclassification offline to improve before grading again.
+→ Bash: python3 << 'EOF' import collections import build_fst as B rows=B.rows; by_lem=B.by_lem # For a-stem nouns, determine gold gender from unamb…
+    a-stem nouns 447 LG disagrees with gold: 15
+    नड gold n LG m [('ानि', 'N;ACC;PL'), ('ेभ्यः', 'N;ABL;PL'), ('ौ', 'N;NOM;DU')]
+    द्युम्न gold n LG m [('ाभ्याम्', 'N;INS;DU'), ('ेभ्यः', 'N;ABL;PL'), ('ः', 'N;NOM;SG')]
+    मित्र gold m LG n [('म्', 'N;ACC;SG'), ('', 'N;VOC;SG'), ('ान्', 'N;ACC;PL')]
+    पिप्पल gold m LG n [('म्', 'N;ACC;SG'), ('ौ', 'N;VOC;DU'), ('ाः', 'N;NOM;PL')]
+    काण्ड gold m LG n [('े', 'N;NOM;DU'), ('ाः', 'N;VOC;PL'), ('ाः', 'N;NOM;PL')]
+    उक्थ gold m LG n [('े', 'N;VOC;DU'), ('ान्', 'N;ACC;PL'), ('ैः', 'N;INS;PL')]
+    अरण्य gold n LG m [('स्य', 'N;GEN;SG'), ('ेभ्यः', 'N;DAT;PL'), ('े', 'N;VOC;DU')]
+    तर्क gold n LG m [('म्', 'N;ACC;SG'), ('ाभ्याम्', 'N;DAT;DU'), ('े', 'N;NOM;DU')]
+    वृष gold m LG n [('योः', 'N;LOC;DU'), ('ाभ्याम्', 'N;ABL;DU'), ('े', 'N;ACC;DU')]
+    अर्जुन gold n LG m [('ेभ्यः', 'N;DAT;PL'), ('ाः', 'N;NOM;PL'), ('म्', 'N;ACC;SG')]
+    अनुवाद gold n LG m [('ाणि', 'N;VOC;PL'), ('ौ', 'N;ACC;DU'), ('ात्', 'N;ABL;SG')]
+    सत्त्व gold n LG m [('म्', 'N;ACC;SG'), ('ेषु', 'N;LOC;PL'), ('ानि', 'N;ACC;PL')]
+Credit balance is too low
+
+=== FINAL RESULT ===
+Credit balance is too low
