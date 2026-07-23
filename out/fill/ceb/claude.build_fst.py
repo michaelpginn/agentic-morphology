@@ -1,154 +1,169 @@
 #!/usr/bin/env python3
-"""Build a morphological inflection FST for Cebuano (ceb) using PyFoma.
+"""Build a morphological-inflection FST for Cebuano (ceb) with PyFoma.
 
 Strategy
 --------
-The task only requires generalizing to unseen *lemma+feature* combinations,
-never to unseen lemmas.  The inflection is largely prefix-based: the lemma
-carries a class prefix (mo-, ma-, mag-, man-) followed by a stem, and each
-morphological feature bundle replaces that prefix with a feature-specific one
-while copying the stem unchanged.
+The held-out dev/test items are *unseen lemma+feature combinations* of lemmas
+that all appear in training.  So the transducer must (a) cover every
+lemma x feature cell, and (b) predict the cells it never saw.
 
-We therefore encode a small set of class/feature prefix-rewrite rules directly
-as an FST (a handful of states after minimization) rather than memorizing the
-training pairs.  On the training data this rule set reproduces ~87% of the
-forms; the residual errors are genuinely lexically-conditioned choices
-(e.g. PRF;PST `na-` vs `naka-`) that are not predictable from the other cells
-of a lemma's paradigm, so the majority rule is the accuracy ceiling.
+We model each inflected form as   output = prefix + stem   where the stem is the
+lemma with its leading modal prefix (mo-/ma-/mag-/mang-) stripped.  The prefix is
+chosen from the morphological features, with a dynamic-vs-stative class decision
+for ambiguous "ma-" verbs (a "ma-" lemma that shows any ni/nag/ning form in its
+observed paradigm inflects like the dynamic "mo-" class).
 
-Input/output format (each symbol is atomic, produced with PyFoma quoting):
-    input : [V][PST] m o b a t i
-    output: [V][PST] n i b a t i
+For every (lemma, feature) cell we emit:
+  * the gold form when it was observed in training (guaranteed correct), else
+  * the rule-predicted form.
+
+The whole cell inventory is compiled into one FST as a union of quoted-symbol
+cross-products and minimized.  Each feature tag ([V], [PST], ...) and each
+character is an atomic (quoted) symbol on both sides.
 """
 
-import os
+import collections
 from pyfoma import FST
 
-DATA = "/workspace/data/ceb.trn"
-OUT_FOMA = "test.foma"
+TRAIN = "data/ceb.trn"
+OUTFILE = "test.foma"
 
-# --- alphabet (characters that may appear inside a stem) ---------------------
-CHARS = [' ', '-', 'a', 'b', 'd', 'e', 'g', 'h', 'i', 'k', 'l', 'm', 'n',
-         'o', 'p', 'r', 's', 't', 'u', 'w', 'y']
-VOWELS = ['a', 'e', 'i', 'o', 'u']
-
-# --- feature bundles -> ordered list of bracketed tag symbols ----------------
-# Keys are canonical bundle names; values are the tag sequence used on BOTH
-# the input and output side (tags are copied verbatim).
-FEATS = {
-    'NFIN':     ['[V]', '[NFIN]'],
-    'FUT':      ['[V]', '[FUT]'],
-    'PST':      ['[V]', '[PST]'],
-    'PRS':      ['[V]', '[PRS]'],
-    'PROG;PRS': ['[V]', '[PROG]', '[PRS]'],
-    'PRF;PST':  ['[V]', '[PRF]', '[PST]'],
-}
-
-# Map the raw third-column string to a canonical bundle name.
-def bundle_name(feat_col):
-    parts = feat_col.split(';')          # e.g. ['V','PROG','PRS']
-    return ';'.join(parts[1:])           # drop leading 'V'
-
-# --- prefix-rewrite rules ----------------------------------------------------
-# For the four productive classes, the input prefix is rewritten to the value
-# below (stem copied).  `hyphen` marks cells where a hyphen is inserted before
-# a vowel-initial stem (mo- present/progressive: nag- / ning-).
-#   entry: class-input-prefix -> (output-prefix, hyphen_before_vowel)
-RULES = {
-    'PST': {'mo': ('ni', False), 'ma': ('na', False),
-            'mag': ('nag', False), 'man': ('nan', False)},
-    'PRS': {'mo': ('nag', True), 'ma': ('na', False),
-            'mag': ('nag', False), 'man': ('nan', False)},
-    'PROG;PRS': {'mo': ('ning', True), 'ma': ('na', False),
-                 'mag': ('nag', False), 'man': ('nagpan', False)},
-    'PRF;PST': {'mo': ('na', False), 'ma': ('na', False),
-                'mag': ('nag', False), 'man': ('napan', False)},
-}
-# NFIN and FUT are (majority) identity: the whole lemma is copied unchanged.
-
-# Lemmas that carry no productive class prefix -> copied identically.
-OTHER_LEMMAS = ['aduna', 'daw']
+FEATS = ["V;FUT", "V;NFIN", "V;PST", "V;PRS", "V;PROG;PRS", "V;PRF;PST"]
+LEM_PREFIXES = ["makahimo sa", "mahimo nga", "mang", "mag", "mo", "ma", "mi", "na", "pa"]
+NONPAST = {"V;PST", "V;PRS", "V;PROG;PRS", "V;PRF;PST"}
+VOWELS = set("aeiou")
+# Prefix used by the productive dynamic ("mo-") class, per feature bundle.
+DYN = {"V;FUT": "mo", "V;NFIN": "mo", "V;PST": "ni",
+       "V;PRS": "nag", "V;PROG;PRS": "ning", "V;PRF;PST": "na"}
 
 
-# --- regex helpers -----------------------------------------------------------
-def q(s):
-    """Quote a python string as a sequence of atomic PyFoma symbols."""
-    return " ".join("'%s'" % c for c in s)
+def strip_lem(lem):
+    """Split a lemma into (modal prefix, stem)."""
+    for p in LEM_PREFIXES:
+        if lem.startswith(p) and len(lem) > len(p):
+            return p, lem[len(p):]
+    return "", lem
 
 
-def xprod(src, dst):
-    """Cross product mapping the literal string `src` to `dst`."""
-    return "(%s):(%s)" % (q(src), q(dst))
-
-
-def read_other_lemmas():
-    """Confirm the set of prefix-less lemmas from the data (best effort)."""
-    found = set()
-    if os.path.exists(DATA):
-        for line in open(DATA, encoding='utf-8'):
-            line = line.rstrip('\r\n')
-            if not line:
-                continue
-            lem = line.split('\t')[0]
-            if not (lem.startswith('mo') or lem.startswith('ma')):
-                found.add(lem)
-    # union with the hardcoded fallback so the script works standalone
-    return sorted(found | set(OTHER_LEMMAS))
-
-
-def build():
-    # defined sub-networks
-    d = {}
-    d['Sig'] = FST.re("(" + "|".join("'%s'" % c for c in CHARS) + ")")
-    d['Stem'] = FST.re("$Sig*", d)                       # copy any char run
-    d['Vow'] = FST.re("(" + "|".join("'%s'" % c for c in VOWELS) + ")")
-    d['Cons'] = FST.re("$Sig - $Vow", d)                 # non-vowel char
-    d['MaFirst'] = FST.re("$Sig - ('g'|'n')", d)         # ma- stem 1st char
-    d['MaStem'] = FST.re("$MaFirst $Stem", d)            # excludes mag-/man-
-
-    branches = []
-    other = read_other_lemmas()
-
-    for bundle, tags in FEATS.items():
-        tagseq = " ".join("'%s'" % t for t in tags)      # copied verbatim
-
-        if bundle in ('NFIN', 'FUT'):
-            # identity: output lemma == input lemma
-            branches.append("%s $Stem" % tagseq)
+def load(path):
+    rows = []
+    for line in open(path):
+        line = line.rstrip("\n")
+        if not line:
             continue
+        lem, inf, f = line.split("\t")
+        rows.append((lem, inf, f))
+    return rows
 
-        rule = RULES[bundle]
-        # mo-class
-        opref, hy = rule['mo']
-        if hy:
-            # vowel-initial stem -> insert hyphen; consonant-initial -> plain
-            branches.append("%s %s $Vow $Stem" % (tagseq, xprod('mo', opref + '-')))
-            branches.append("%s %s $Cons $Stem" % (tagseq, xprod('mo', opref)))
-        else:
-            branches.append("%s %s $Stem" % (tagseq, xprod('mo', opref)))
-        # ma-class (stem constrained so it never overlaps mag-/man-)
-        branches.append("%s %s $MaStem" % (tagseq, xprod('ma', rule['ma'][0])))
-        # mag-class
-        branches.append("%s %s $Stem" % (tagseq, xprod('mag', rule['mag'][0])))
-        # man-class
-        branches.append("%s %s $Stem" % (tagseq, xprod('man', rule['man'][0])))
-        # prefix-less lemmas -> identity
-        for lem in other:
-            branches.append("%s %s" % (tagseq, q(lem)))
 
-    regex = " | ".join("(%s)" % b for b in branches)
-    fst = FST.re(regex, d)
-    fst = fst.determinize().minimize()
-    return fst
+def build_tables(rows):
+    """Majority output-prefix tables and per-lemma gold paradigms."""
+    bylem = collections.defaultdict(dict)
+    for lem, inf, f in rows:
+        bylem[lem][f] = inf
+    tab = collections.defaultdict(collections.Counter)   # (lem_prefix, feat) -> prefixes
+    gtab = collections.defaultdict(collections.Counter)  # feat -> prefixes
+    for lem, d in bylem.items():
+        lp, stem = strip_lem(lem)
+        for f, inf in d.items():
+            if inf.endswith(stem):
+                op = inf[:len(inf) - len(stem)].rstrip("-")
+                tab[(lp, f)][op] += 1
+                gtab[f][op] += 1
+    maj = {k: c.most_common(1)[0][0] for k, c in tab.items()}
+    gmaj = {k: c.most_common(1)[0][0] for k, c in gtab.items()}
+    return bylem, maj, gmaj
+
+
+def known_prefixes(lem, bylem):
+    lp, stem = strip_lem(lem)
+    out = set()
+    for f, inf in bylem.get(lem, {}).items():
+        if inf.endswith(stem):
+            out.add(inf[:len(inf) - len(stem)].rstrip("-"))
+    return out
+
+
+def predict(lem, f, bylem, maj, gmaj):
+    """Predict the inflected form for an unseen (lemma, feature) cell."""
+    lp, stem = strip_lem(lem)
+
+    # Lemmas with no recognizable modal prefix are invariant function words
+    # (e.g. "aduna", "daw"): every cell echoes the lemma.
+    if lp == "":
+        return lem
+
+    # Abilitative "maka-" class: every observed form is maka-/naka- + fixed stem.
+    # These take maka- for FUT/NFIN and naka- for the tense/aspect forms.
+    if lem.startswith("maka"):
+        ab = lem[4:]
+        forms = list(bylem.get(lem, {}).values())
+        if forms and all(v.endswith(ab) and v[:len(v) - len(ab)] in ("maka", "naka")
+                         for v in forms):
+            return ("maka" if f not in NONPAST else "naka") + ab
+
+    kp = known_prefixes(lem, bylem)
+    # A "ma-" lemma that shows any dynamic (ni/nag/ning) form inflects its tense/
+    # aspect cells like the productive dynamic "mo-" class.
+    dynamic = (lp == "mo") or (lp == "ma" and bool(kp & {"ni", "nag", "ning"}))
+    if f in NONPAST and dynamic:
+        pref = DYN[f]
+    else:
+        # FUT/NFIN and non-dynamic cells follow the (modal-prefix, feature) majority.
+        pref = maj.get((lp, f), gmaj.get(f, ""))
+    # Orthographic hyphen before vowel-initial stems for nag-/ning-, and ni- + i.
+    if stem and stem[0] in VOWELS:
+        if pref in ("nag", "ning"):
+            pref += "-"
+        elif pref == "ni" and stem[0] == "i":
+            pref = "ni-"
+    return pref + stem
+
+
+def toks(feat_bundle, s):
+    """Tokenize into atomic symbols: feature tags first, then characters."""
+    return ["[%s]" % x for x in feat_bundle.split(";")] + list(s)
+
+
+def side(toklist):
+    return "(" + " ".join("'" + t + "'" for t in toklist) + ")"
 
 
 def main():
-    fst = build()
-    foma = fst.to_fomastring()
-    with open(OUT_FOMA, 'w', encoding='utf-8') as fh:
-        fh.write(foma)
-    print("Saved %s (%d states)" % (OUT_FOMA, len(fst.states)))
+    rows = load(TRAIN)
+    bylem, maj, gmaj = build_tables(rows)
+    gold = {(lem, f): inf for lem, inf, f in rows}
+
+    # One cell per (lemma, feature): gold if seen, else rule prediction.
+    cells = {}
+    for lem in bylem:
+        for f in FEATS:
+            cells[(lem, f)] = gold.get((lem, f)) or predict(lem, f, bylem, maj, gmaj)
+
+    branches = []
+    for (lem, f), out in cells.items():
+        branches.append("(" + side(toks(f, lem)) + ":" + side(toks(f, out)) + ")")
+    regex = " | ".join(branches)
+
+    fst = FST.re(regex)
+    fst = fst.minimize()
+
+    # Sanity: every input generates exactly its intended output.
+    bad = 0
+    for (lem, f), out in cells.items():
+        got = list(fst.generate(toks(f, lem)))
+        if got != ["".join(toks(f, out))]:
+            bad += 1
+            if bad <= 5:
+                print("MISMATCH", lem, f, "->", got, "expected", out)
+    print("cells:", len(cells), "generation mismatches:", bad)
+    print("states:", len(list(fst.states)))
+
+    foma_str = fst.to_fomastring()
+    with open(OUTFILE, "w") as fh:
+        fh.write(foma_str)
+    print("wrote", OUTFILE, "(%d bytes)" % len(foma_str))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

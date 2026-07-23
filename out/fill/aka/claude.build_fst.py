@@ -1,160 +1,130 @@
 #!/usr/bin/env python3
-"""Build a morphological-inflection FST for Akan (aka) verbs using PyFoma.
+"""Build a morphological-inflection FST for Akan (aka) with PyFoma.
 
-Input  format:  feature tags first (each bracketed & quoted as an atomic
-                symbol), followed by the quoted characters of the lemma,
-                e.g.  '[V]''[PST]''r''u''n'
-Output format:  the same feature tags echoed back, followed by the quoted
-                characters of the inflected wordform.
+Input format (upper side): the morphological features first, each feature a
+single quoted bracket-tag atomic symbol (e.g. '[V]' '[PST+IMMED]'), followed by
+each character of the lemma as a quoted atomic symbol, e.g.
 
-Strategy
---------
-Analysis of the training data shows every inflected form is exactly
+    '[V]''[PST+IMMED]''b''o''r''o'
 
-        prefix + lemma + suffix
+Output (lower side): the same feature tags echoed, followed by each character of
+the inflected wordform.
 
-with two phonological alternations:
-
-  * The prefix's final nasal assimilates to the place of the stem's first
-    consonant: it is labial (m / mm) before labial-initial stems {b,f,m,p}
-    and coronal (n / nn) otherwise.  In practice this means the prefix for a
-    given feature-set depends only on whether the stem starts with a labial.
-
-  * The past/perfect suffix makes the word end in "ee": it is "e" when the
-    stem already ends in "e", and "ee" otherwise.
-
-These two rules reconstruct 100% of the training data.  Because the task only
-requires generalising to unseen *lemma+feature combinations* (every lemma is
-already attested), we enumerate every known lemma against every known
-feature-set, generate its correct output with the learned rules, and compile
-the union into a single transducer.  Determinising and minimising yields a
-compact, deterministic FST.
+The grammar is a single productive system: every feature combination selects a
+prefix (with regular nasal assimilation) and an optional -ee/-e suffix which is
+appended to the (unchanged) lemma.  This reproduces every training pair exactly
+and generalizes to unseen lemma+feature combinations.
 """
 
-import collections
 from pyfoma import FST
-from pyfoma.fst import State
 
-TRAIN = "data/aka.trn"
-OUT_FOMA = "test.foma"
-LABIAL = set("bfmp")  # stems triggering labial (m) nasal assimilation
+# ---------------------------------------------------------------------------
+# Alphabet
+# ---------------------------------------------------------------------------
+ALL = [' ', 'a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'm', 'n', 'o', 'p',
+       'r', 's', 't', 'u', 'w', 'y', 'ɔ', 'ɛ']
+LAB = set('bpfm')          # labials trigger the m-nasal
+NONLAB = [c for c in ALL if c not in LAB]
 
+# ---------------------------------------------------------------------------
+# Per-feature-combination grammar.
+#   template: literal prefix string; a trailing 'N' marks a geminate assimilating
+#             nasal (nn/mm) adjacent to the stem, '1' marks a single nasal (n/m).
+#   suffix:   1 if the -ee (~ -e after final e) suffix is appended, else 0.
+# ---------------------------------------------------------------------------
+FEAT = {
+    'V;HAB;PRS': ('', 0), 'V;IMP;PRS': ('', 0), 'V;NFIN': ('', 0),
+    'V;HAB;PST': ('', 1),
+    'V;HAB;FUT': ('bɛ', 0), 'V;PST+IMMED': ('bɛ', 1),
+    'V;PRS;LGSPEC1': ('kɔ', 0), 'V;PST;LGSPEC1': ('kɔ', 1),
+    'V;HAB+PRF;PRS': ('a', 0), 'V;HAB+PRF;PST': ('nna a', 0),
+    'V;HAB+PROG;PRS': ('re', 0), 'V;HAB+PROG;PST': ('nna re', 0),
+    'V;PROG;PRS+IMMED': ('rebɛ', 0), 'V;PROG;PST+IMMED': ('nna rebɛ', 0),
+    'V;PROG;PRS;LGSPEC1': ('rekɔ', 0), 'V;PROG;PST;LGSPEC1': ('nna rekɔ', 0),
+    'V;PRF;PRS+IMMED': ('abɛ', 0), 'V;PRF;PST+IMMED': ('nna abɛ', 0),
+    'V;PRF;PRS;LGSPEC1': ('akɔ', 0), 'V;PRF;PST;LGSPEC1': ('nna akɔ', 0),
+    'V;NEG;PRS;LGSPEC1': ('nnkɔ', 0), 'V;NEG;PST+IMMED': ('ammbɛ', 0),
+    'V;NEG;PST;LGSPEC1': ('ammkɔ', 0),
+    'V;PROG;NEG;PRS+IMMED': ('remmbɛ', 0), 'V;PROG;NEG;PST+IMMED': ('nna remmbɛ', 0),
+    'V;PROG;NEG;PRS;LGSPEC1': ('rennkɔ', 0), 'V;PROG;NEG;PST;LGSPEC1': ('nna rennkɔ', 0),
+    'V;PRF;NEG;PRS+IMMED': ('mmbɛ', 1), 'V;PRF;NEG;PST+IMMED': ('nna mmbɛ', 1),
+    'V;PRF;NEG;PRS;LGSPEC1': ('nnkɔ', 1), 'V;PRF;NEG;PST;LGSPEC1': ('nna nnkɔ', 1),
+    'V;HAB+PRF;NEG;PRS': ('N', 1), 'V;HAB+PRF;NEG;PST': ('nna N', 1),
+    'V;HAB+PROG;NEG;PRS': ('reN', 0), 'V;HAB+PROG;NEG;PST': ('nna reN', 0),
+    'V;HAB;NEG;FUT': ('reN', 0), 'V;HAB;NEG;PRS': ('N', 0), 'V;HAB;NEG;PST': ('aN', 0),
+    'V;IMP;NEG;PRS': ('mma N', 0), 'V;SBJV;NEG;PRS': ('mma N', 0),
+    'V;SBJV;PRS': ('1', 0),
+}
 
-def read_rows(path):
-    rows = []
-    with open(path, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.rstrip("\n").rstrip("\r")
-            if not line:
-                continue
-            lemma, form, feats = line.split("\t")
-            rows.append((lemma, form, feats))
-    return rows
+# ---------------------------------------------------------------------------
+# Regex-fragment builders
+# ---------------------------------------------------------------------------
+def q(c):
+    """Quote a single character as an atomic FST.re symbol."""
+    return "'%s'" % c
 
+def union(chars):
+    """Identity-copy union over a set/list of characters."""
+    return "(" + "|".join(q(c) for c in chars) + ")"
 
-def align(lemma, form):
-    """Return (prefix, suffix) such that form == prefix + lemma + suffix,
-    choosing the alignment whose suffix is one of '', 'e', 'ee'."""
-    i = form.find(lemma)
-    result = None
-    while i >= 0:
-        suf = form[i + len(lemma):]
-        if suf in ("", "e", "ee"):
-            result = (form[:i], suf)
-        i = form.find(lemma, i + 1)
-    return result
+def ins(s):
+    """Insert a literal string on the output (epsilon -> chars)."""
+    return " ".join("'':%s" % q(c) for c in s)
 
+ANY = union(ALL)
 
-def learn(rows):
-    """Learn, per feature-set: the prefix for each labial class and whether a
-    past/perfect suffix is present."""
-    by_feats = collections.defaultdict(list)
-    for lemma, form, feats in rows:
-        by_feats[feats].append((lemma, form))
+def stembody(Fset, Lset):
+    """Copy a non-empty stem whose first char is in Fset and last char in Lset."""
+    Fset = list(Fset)
+    Lset = list(Lset)
+    both = [c for c in Fset if c in set(Lset)]
+    alts = []
+    if both:                                   # length-1 stem
+        alts.append(union(both))
+    alts.append(union(Fset) + " " + ANY + "* " + union(Lset))   # length >= 2
+    return "(" + " | ".join(alts) + ")"
 
-    prefix = {}      # (feats, is_labial) -> prefix string
-    has_suffix = {}  # feats -> bool
-    for feats, items in by_feats.items():
-        suffixed = False
-        for lemma, form in items:
-            pre, suf = align(lemma, form)
-            prefix[(feats, lemma[0] in LABIAL)] = pre
-            if suf:
-                suffixed = True
-        has_suffix[feats] = suffixed
-    return prefix, has_suffix
+def build_stem(nasal, suf):
+    """Transducer fragment mapping the lemma to prefix-nasal+lemma+suffix."""
+    if nasal:                                  # split on labiality of first char
+        gem = 2 if nasal == 'N' else 1
+        firsts = [(LAB, 'm' * gem), (NONLAB, 'n' * gem)]
+    else:
+        firsts = [(ALL, '')]
+    branches = []
+    for Fset, nas in firsts:
+        pre = (ins(nas) + " ") if nas else ""
+        if suf:                                # -e after final 'e', else -ee
+            branches.append(pre + stembody(Fset, ['e']) + " " + ins('e'))
+            branches.append(pre + stembody(Fset, [c for c in ALL if c != 'e'])
+                            + " " + ins('ee'))
+        else:
+            branches.append(pre + stembody(Fset, ALL))
+    return "(" + " | ".join(branches) + ")"
 
+def feat_fst(ft):
+    tpl, suf = FEAT[ft]
+    tag = " ".join("'[%s]'" % t for t in ft.split(';'))    # echo feature tags
+    nasal = None
+    lit = tpl
+    if tpl.endswith('N'):
+        nasal, lit = 'N', tpl[:-1]
+    elif tpl.endswith('1'):
+        nasal, lit = '1', tpl[:-1]
+    parts = [tag]
+    if lit:
+        parts.append(ins(lit))
+    parts.append(build_stem(nasal, suf))
+    return "(" + " ".join(parts) + ")"
 
-def suffix_for(lemma, feats, has_suffix):
-    if not has_suffix[feats]:
-        return ""
-    return "e" if lemma.endswith("e") else "ee"
+# ---------------------------------------------------------------------------
+# Assemble, minimize, save
+# ---------------------------------------------------------------------------
+regex = " | ".join(feat_fst(ft) for ft in FEAT)
+grammar = FST.re(regex)
+grammar = grammar.determinize().minimize()
 
+with open("test.foma", "w") as fh:
+    fh.write(grammar.to_fomastring())
 
-def tags_of(feats):
-    return ["[" + t + "]" for t in feats.split(";")]
-
-
-def build_fst(rows, prefix, has_suffix):
-    lemmas = sorted({r[0] for r in rows})
-    featsets = sorted({r[2] for r in rows})
-
-    fst = FST()
-    start = fst.initialstate
-    alphabet = set()
-
-    def arc(src, label):
-        dst = State()
-        fst.states.add(dst)
-        src.add_transition(dst, label)
-        for sym in label:
-            if sym:
-                alphabet.add(sym)
-        return dst
-
-    # Enumerate every (feature-set, lemma) pair as one path from the start
-    # state.  Feature tags are echoed (identity); the prefix and suffix are
-    # emitted on input-epsilon arcs; the lemma characters are copied.
-    for feats in featsets:
-        tags = tags_of(feats)
-        for lemma in lemmas:
-            cur = start
-            for tag in tags:                      # echo feature tags
-                cur = arc(cur, (tag,))
-            pre = prefix[(feats, lemma[0] in LABIAL)]
-            for ch in pre:                        # emit prefix
-                cur = arc(cur, ("", ch))
-            for ch in lemma:                      # copy lemma characters
-                cur = arc(cur, (ch,))
-            for ch in suffix_for(lemma, feats, has_suffix):  # emit suffix
-                cur = arc(cur, ("", ch))
-            fst.finalstates.add(cur)
-            cur.finalweight = 0.0
-
-    fst.alphabet = alphabet
-    fst = fst.epsilon_remove().determinize_as_dfa().minimize()
-    fst.alphabet = alphabet
-    return fst
-
-
-def main():
-    rows = read_rows(TRAIN)
-    prefix, has_suffix = learn(rows)
-
-    # Sanity check: the learned rules must reconstruct all training rows.
-    for lemma, form, feats in rows:
-        pre = prefix[(feats, lemma[0] in LABIAL)]
-        pred = pre + lemma + suffix_for(lemma, feats, has_suffix)
-        assert pred == form, f"rule mismatch: {lemma}/{feats}: {pred!r} != {form!r}"
-
-    fst = build_fst(rows, prefix, has_suffix)
-    print(f"FST built: {len(fst.states)} states")
-
-    fomastring = fst.to_fomastring()
-    with open(OUT_FOMA, "w", encoding="utf-8") as fh:
-        fh.write(fomastring)
-    print(f"Saved to {OUT_FOMA} ({len(fomastring)} bytes)")
-
-
-if __name__ == "__main__":
-    main()
+print("states:", len(grammar.states))
