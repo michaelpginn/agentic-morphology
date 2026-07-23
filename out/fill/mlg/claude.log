@@ -1,4 +1,142 @@
-Credit balance is too low
+I'll start by examining the training data and understanding the PyFoma library.
+→ Bash: wc -l /workspace/data/mlg.trn; echo "---"; head -30 /workspace/data/mlg.trn
+    447 /workspace/data/mlg.trn
+    ---
+    itsoka	mitsoka	V;PRS
+    ampianatra	mampianatra	V;PRS
+    anakora	anakora	V;NFIN
+    ianatra	nianatra	V;PST
+    igigagiga	igigagiga	V;NFIN
+    amempina	namempina	V;PST
+    anorina	hanorina	V;FUT
+    itangorona	mitangorona	V;PRS
+    ilalao	milalao	V;PRS
+    anampy	hanampy	V;FUT
+    tonga	ntonga	V;PST
+    tonga	htonga	V;FUT
+    amisavisa	amisavisa	V;NFIN
+    analady	nanalady	V;PST
+    anafy	hanafy	V;FUT
+    anatsika	anatsika	V;NFIN
+    ihevaheva	nihevaheva	V;PST
+    ahadikitra	mahadikitra	V;PRS
+    ihinana	nihinana	V;PST
+    anampy	nanampy	V;PST
+    iboboka	miboboka	V;PRS
+    anangona	anangona	V;NFIN
+    amisavisa	mamisavisa	V;PRS
+    ifohaza	hifohaza	V;FUT
+    andihy	handihy	V;FUT
+    iantsoantso	iantsoantso	V;NFIN
+    ibango	mibango	V;PRS
+    ahary	nahary	V;PST
+    itangorona	nitangorona	V;PST
+    andringana	handringana	V;FUT
+→ Bash: python -c "import pyfoma; print(pyfoma.__file__); print([x for x in dir(pyfoma)])"
+    /usr/local/lib/python3.11/site-packages/pyfoma/__init__.py
+    ['FST', 'Paradigm', 'State', 'Transition', '__author__', '__builtins__', '__cached__', '__copyright__', '__credits__', '__doc__', '__email__', '__file__', '__license__', '__loader__', '__maintainer__', '__name__', '__package__', '__path__', '__spec__', '__status__', '__version__', '_private', 'algorithms', 'atomic', 'concatenate', 'context_restrict', 'determinize', 'flag', 'fst', 'ignore', 'invert', 'minimize', 'paradigm', 'project', 're', 'reverse', 'rewrite', 'to_regex']
+→ Bash: python3 -c " from collections import Counter rows=[l.rstrip('\n').split('\t') for l in open('data/mlg.trn')] feats=Counter(r[2] for r in ro…
+    features: Counter({'V;PRS': 127, 'V;NFIN': 116, 'V;FUT': 103, 'V;PST': 101})
+    done other-check
+→ Bash: python3 -c " from collections import Counter,defaultdict rows=[l.rstrip('\n').split('\t') for l in open('data/mlg.trn')] d=defaultdict(Coun…
+    PRS {'m': 127}
+    NFIN {'': 116}
+    PST {'n': 101}
+    FUT {'h': 103}
+Transformation is trivial: PRS→prepend `m`, PST→prepend `n`, FUT→prepend `h`, NFIN→identity. Let me get the character alphabet.
+→ Bash: python3 -c " rows=[l.rstrip('\n').split('\t') for l in open('data/mlg.trn')] chars=set() for lemma,form,f in rows:     chars|=set(lemma)|se…
+    ['a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'v', 'y', 'z', 'à']
+    tags col1: {'V'}
+→ Bash: python3 -c " from pyfoma import FST help(FST.re) " 2>&1 | head -40
+    Help on method regex in module pyfoma.fst:
+    
+    regex(regularexpression, defined=None, functions=None, multichar_symbols=None) class method of pyfoma.fst.FST
+        Compile a regular expression and return the resulting FST.
+        Keyword arguments:
+        defined -- a dictionary of defined FSTs that the compiler can access whenever
+                   a defined network is referenced in the regex, e.g. $vowel
+        functions -- a set of Python functions that the compiler can access when a function
+                    is referenced in the regex, e.g. $^myfunc(...)
+→ Bash: python3 -c " from pyfoma import FST # test quoting and transduction f = FST.re(\"'[V]':'[V]'\") print('made', f.number_of_states()) print(l…
+    Exit code 1
+    Traceback (most recent call last):
+      File "<string>", line 5, in <module>
+    AttributeError: 'FST' object has no attribute 'number_of_states'
+→ Bash: python3 -c " from pyfoma import FST f = FST.re(\"'[V]':'[V]'\") print(type(f)) print([m for m in dir(f) if not m.startswith('__')]) print('…
+    <class 'pyfoma.fst.FST'>
+    ['_equivalence_view', '_equivalent_by_symmetric_difference', '_identity_advance_discrepancy', '_identity_discrepancy_scan', '_path_encode_transducer', '_prune_alphabet_to_seen', 'add_weight', 'alphabet', 'ambiguous_domain', 'ambiguous_part', 'analyze', 'apply', 'arccount', 'arity', 'become', 'character_ranges', 'cleanup_sigma', 'complement', 'compose', 'concatenate', 'context_restrict', 'copy_filtered', 'copy_mod', 'cross_product', 'determinize', 'determinize_as_dfa', 'determinize_unweighted', 'difference', 'eliminate_flags', 'epsilon_remove', 'eq', 'filter_accessible', 'filter_coaccessible', 'finalstates', 'from_fomastring', 'from_strings', 'fromdict', 'generate', 'has_weights', 'hash', 'ignore', 'initialstate', 'intersection', 'invert', 'is_deterministic', 'is_equivalent', 'is_functional', 'is_identity', 'is_unambiguous', 'kleene_closure', 'kleene_plus', 'kleene_star', 'label_states_topology', 'load', 'load_foma', 'map_labels', 'merge_equivalent_states', 'minimize', 'minimize_as_dfa', 'minimize_brz', 'nonidentity_domain', 'number_unnamed_states', 'optional', 'pathcount', 'product', 'project', 'push_weights', 're', 'regex', 'render', 'reverse', 'reverse_e', 'rewrite', 'rlg', 'save', 'save_att', 'save_foma', 'shuffle', 'states', 'to_fomastring', 'to_regex', 'todict', 'tojs', 'tokenize_against_alphabet', 'trim', 'unambiguous_part', 'union', 'view', 'words', 'words_cheapest', 'words_nbest']
+    states 2
+    ['[V]']
+    ['[V]']
+→ Bash: python3 -c " from pyfoma import FST CHARS = list('abdefghijklmnoprstvyzà') chardef = '|'.join(\"'\"+c+\"'\" for c in CHARS) regex = (   \"'…
+    states 6
+    ['[V][PRS]mitsoka']
+FST works with 6 states. Let me write the full script and validate against all training data.
+→ Write: /workspace/build_fst.py
+    File created successfully at: /workspace/build_fst.py (file state is current in your context — no need to Read it back)
+→ Bash: python3 build_fst.py && python3 -c " from pyfoma import FST from build_fst import build f=build() rows=[l.rstrip('\n').split('\t') for l in…
+    FST built with 6 states; saved to test.foma
+    total 447 bad 0 states 6
+All 447 training examples pass with a 6-state FST. Let me verify the saved fomastring reloads correctly, then run the grader once.
+→ Bash: python3 -c " from pyfoma import FST s=open('test.foma').read() f=FST.from_fomastring(s) print('reloaded states',len(f.states)) print(list(f…
+    reloaded states 6
+    ['[V][FUT]htonga'] ['[V][NFIN]anakora']
+→ Bash: sudo /opt/grader/grade test.foma --lang mlg 2>&1 | tail -20
+    anosotra	V;NFIN	[V][NFIN]anosotra	Y
+    ifaratra	V;PST	[V][PST]nifaratra	Y
+    ahasaikatra	V;FUT	[V][FUT]hahasaikatra	Y
+    ipetraka	V;PST	[V][PST]nipetraka	Y
+    ifady	V;NFIN	[V][NFIN]ifady	Y
+    andrenodrenoka	V;PST	[V][PST]nandrenodrenoka	Y
+    analavitra	V;NFIN	[V][NFIN]analavitra	Y
+    aharenina	V;NFIN	[V][NFIN]aharenina	Y
+    anameloka	V;NFIN	[V][NFIN]anameloka	Y
+    amintina	V;NFIN	[V][NFIN]amintina	Y
+    iery	V;PST	[V][PST]niery	Y
+    ifona	V;PST	[V][PST]nifona	Y
+    amintina	V;PST	[V][PST]namintina	Y
+    anohy	V;NFIN	[V][NFIN]anohy	Y
+    anatsika	V;PST	[V][PST]nanatsika	Y
+    ===============
+    Final score (dev): 62/62
+    ===============
+    Final score (test): 127/127
+    Wrote to /opt/grader/metrics.json
+The FST achieves a perfect score. 
+
+## Summary
+
+I built `/workspace/build_fst.py` using PyFoma that produces a **6-state FST** achieving **100% accuracy** on all three datasets (447/447 train, 62/62 dev, 127/127 test).
+
+**Analysis of the data:** Every Malagasy wordform in the training set is derived from its lemma by a single tense-driven prefixation:
+- `PRS` → prepend `m`
+- `PST` → prepend `n`
+- `FUT` → prepend `h`
+- `NFIN` → identity (no prefix)
+
+**The FST** is a small regex that:
+1. Echoes the `[V]` tag,
+2. Echoes the tense tag while inserting the corresponding prefix consonant (`'':'m'`, `'':'n'`, `'':'h'`, or nothing for NFIN),
+3. Copies the stem characters verbatim.
+
+Each feature and character is a quoted atomic symbol (e.g. `'[V]''[PRS]''i''t''s''o''k''a'`), per the required format. The compiled FST is minimized and saved via `to_fomastring()` to `test.foma`. Because the rule is purely tense-conditioned prefixation, it generalizes perfectly to unseen lemma+feature combinations while staying maximally compact (6 states).
 
 === FINAL RESULT ===
-Credit balance is too low
+The FST achieves a perfect score. 
+
+## Summary
+
+I built `/workspace/build_fst.py` using PyFoma that produces a **6-state FST** achieving **100% accuracy** on all three datasets (447/447 train, 62/62 dev, 127/127 test).
+
+**Analysis of the data:** Every Malagasy wordform in the training set is derived from its lemma by a single tense-driven prefixation:
+- `PRS` → prepend `m`
+- `PST` → prepend `n`
+- `FUT` → prepend `h`
+- `NFIN` → identity (no prefix)
+
+**The FST** is a small regex that:
+1. Echoes the `[V]` tag,
+2. Echoes the tense tag while inserting the corresponding prefix consonant (`'':'m'`, `'':'n'`, `'':'h'`, or nothing for NFIN),
+3. Copies the stem characters verbatim.
+
+Each feature and character is a quoted atomic symbol (e.g. `'[V]''[PRS]''i''t''s''o''k''a'`), per the required format. The compiled FST is minimized and saved via `to_fomastring()` to `test.foma`. Because the rule is purely tense-conditioned prefixation, it generalizes perfectly to unseen lemma+feature combinations while staying maximally compact (6 states).

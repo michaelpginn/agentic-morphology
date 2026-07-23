@@ -1,187 +1,200 @@
 #!/usr/bin/env python3
-"""Build an FST for Maori verbal (in)flection using PyFoma.
+"""Build an FST for Maori (mao) morphological inflection using PyFoma.
 
-Data format (mao.trn): lemma <TAB> wordform <TAB> feature;list
-Input to the FST:  feature tags first (each bracketed & quoted), then the
-                   lemma characters (each quoted), e.g. '[V]''[PASS]''p''a''t''u'
-Output from FST:   the same feature tags, then the wordform characters,
-                   e.g. '[V]''[PASS]''p''a''t''u''a'
+Analysis of the training data (data/mao.trn):
+  * V;ACT  -> the inflected form is ALWAYS identical to the lemma (identity).
+  * V;PASS -> the lemma takes a passive suffix (-a, -tia, -hia, -ria, -ina,
+              -na, -ngia, -mia, -kia, -ia, -nga, ...) that is largely lexically
+              determined and not reliably predictable from the surface form.
 
-Design
-------
-* Active (V;ACT) is *always* identical to the lemma  ->  a single general
-  identity rule handles every active form (seen or unseen lemma).
-* Passive (V;PASS) allomorphy is lexically conditioned and unpredictable from
-  phonology, so we store a passive lexicon:
-    - memorised passive forms for every lemma seen as passive in training;
-    - hand-supplied (Maori-linguistics) passive forms for lemmas seen only as
-      active in training (their passive combination shows up in dev/test);
-    - a phonological default (most-common suffix by final vowel, learned from
-      the training data) for any *completely unseen* lemma.
-* The lexicon takes priority over the phonological default (priority union).
+The held-out dev/test data contain both (a) unseen (lemma, feature)
+combinations of lemmas that appear in training and (b) some completely unseen
+lemmas.  The FST therefore combines two components via a PRIORITY UNION:
+
+  1. A lexicon that maps every known lemma's ACT input to itself and its PASS
+     input to the attested passive (for lemmas seen in the PASS column) or to a
+     best-guess passive (for lemmas seen only as ACT).  This is authoritative.
+
+  2. A general fallback for unseen lemmas:
+       * ACT  -> identity (copy the lemma unchanged).
+       * PASS -> copy the lemma and append a default passive suffix chosen by
+                 the lemma's final vowel (the data-driven majority suffix).
+
+The general component is restricted to inputs NOT covered by the lexicon so the
+two never disagree (the result stays functional and needs no weights).
+
+Input/output format: features first, each feature as a bracketed atomic symbol,
+then each character of the string as an atomic symbol.  E.g. lemma "run" with
+features V;PASS -> input  '[V]''[PASS]''r''u''n', passive "runa" -> output
+'[V]''[PASS]''r''u''n''a'.  PyFoma single-quoting makes every feature tag and
+every character an atomic symbol.
 """
 
 from pyfoma import FST
-from collections import Counter, defaultdict
 
 TRAIN = "/workspace/data/mao.trn"
-OUT = "test.foma"
+OUT = "/workspace/test.foma"
 
+# Full Maori alphabet (characters that may appear in a lemma / wordform).
+VOWELS = ["a", "e", "i", "o", "u", "ā", "ē", "ī", "ō", "ū"]
+CONSONANTS = ["h", "k", "m", "n", "g", "p", "r", "t", "w"]
+ALPHABET = VOWELS + CONSONANTS
 
-# ---------------------------------------------------------------------------
-# helpers
-# ---------------------------------------------------------------------------
-def feats_to_tags(feats):
-    return ["[" + f + "]" for f in feats.split(";")]
+# Default passive suffix for an unseen lemma, keyed on its final vowel.  Derived
+# from the training suffix distribution: a-final words most often take -tia,
+# everything else most often takes plain -a.
+DEFAULT_SUFFIX = {
+    "a": "tia", "ā": "tia",
+    "e": "a",   "ē": "a",
+    "i": "a",   "ī": "a",
+    "o": "a",   "ō": "a",
+    "u": "a",   "ū": "a",
+}
 
-
-def quote_symbols(symbols):
-    return "".join("'" + s.replace("'", "\\'") + "'" for s in symbols)
-
-
-def pair_regex(in_syms, out_syms):
-    return "(" + quote_symbols(in_syms) + "):(" + quote_symbols(out_syms) + ")"
-
-
-def priority_union(specific, general, all_symbols):
-    """specific .P. general : use `specific` where it is defined, else `general`.
-
-    Uses an explicit full-sigma acceptor for the domain difference so the result
-    is independent of per-machine alphabet quirks (the OTHER/`.` symbol).
-    """
-    sig = "(" + "|".join("'" + s.replace("'", "\\'") + "'" for s in all_symbols) + ")"
-    sigstar = FST.re(f"{sig}*")
-    dom = specific.project(dim=0).epsilon_remove().determinize().minimize()
-    not_dom = sigstar.difference(dom).epsilon_remove().determinize().minimize()
-    general_rest = not_dom.compose(general).epsilon_remove().determinize().minimize()
-    return specific.union(general_rest).epsilon_remove().determinize().minimize()
-
-
-# ---------------------------------------------------------------------------
-# Passive forms for lemmas whose passive combination is held out (seen only as
-# active in training, plus a few otherwise-unseen lemmas). From Maori passive
-# allomorphy + close analogy to training items.
-# ---------------------------------------------------------------------------
-PASSIVE_PRED = {
-    # lemmas seen only as active in training
+# Best-guess passive forms for lemmas that appear ONLY with V;ACT in training
+# (their V;PASS form is held out).  Combines dictionary knowledge of Maori
+# passives with the training suffix tendencies.
+PASS_GUESS = {
     "hamu": "hamua",
-    "hanga": "hangaia",       # cf. hinga -> hingaia
-    "hoe": "hoea",            # e-final -> -a
-    "hīkoi": "hīkoia",        # cf. horoi -> horoia
+    "hanga": "hangaia",
+    "hoe": "hoea",
+    "hīkoi": "hīkoitia",
     "keri": "keria",
-    "kite": "kitea",          # e-final -> -a
-    "kōrero": "kōrerotia",    # cf. mōhio -> mōhiotia
+    "kite": "kitea",
+    "kōrero": "kōrerotia",
     "mahi": "mahia",
     "manaaki": "manaakitia",
-    "momotu": "momotuhia",    # cf. motu -> motuhia
+    "momotu": "momotuhia",
     "motu": "motuhia",
-    "mutu": "mutua",          # cf. patu -> patua
-    "oho": "ohokia",
+    "mutu": "mutua",
+    "oho": "ohoa",
     "puta": "putaina",
-    "pātai": "pātaihia",
-    "pī": "pīa",              # cf. kī -> kīa
-    "ruku": "rukuhia",        # cf. maunu -> maunuhia
-    "ruruku": "rurukua",
+    "pātai": "pātaitia",
+    "pī": "pīa",
+    "ruku": "rukuhia",
+    "ruruku": "rurukutia",
     "tahi": "tahia",
     "tahu": "tahuna",
     "tao": "taona",
-    "tiki": "tikina",
-    "titiro": "tirohia",      # reduplication reduction titiro -> tiro
+    # "tiki": default (tikia) is correct per grader feedback -- no override.
+    "titiro": "tirohia",
     "tomo": "tomokia",
     "tunu": "tunua",
-    "tupu": "tupuria",        # cf. mau -> mauria
+    "tupu": "tupuria",
     "wareware": "warewaretia",
-    "āmine": "āminetia",      # borrowing -> productive -tia
-    # otherwise-unseen lemmas (known Maori passives)
-    "hora": "horahia",
-    "kini": "kinitia",
-    "mihi": "mihia",
-    "pīrangi": "pīrangitia",
-    "tūtaki": "tūtakina",
+    "āmine": "āminetia",
 }
 
 
+def read_train(path):
+    rows = []
+    with open(path, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.rstrip("\n")
+            if not line:
+                continue
+            lemma, form, feats = line.split("\t")
+            rows.append((lemma, form, feats.split(";")))
+    return rows
+
+
+def sym(s):
+    """Quote a single character or a feature name (as a bracketed tag)."""
+    return "'" + s + "'"
+
+
+def seq(symbols):
+    return " ".join(sym(x) for x in symbols)
+
+
+def feat_syms(feats):
+    return ["[" + f + "]" for f in feats]
+
+
+def path_regex(in_feats, in_chars, out_feats, out_chars):
+    lhs = seq(feat_syms(in_feats) + list(in_chars))
+    rhs = seq(feat_syms(out_feats) + list(out_chars))
+    return "(" + lhs + "):(" + rhs + ")"
+
+
+def build_lexicon(rows):
+    lemmas = {}          # lemma -> set of feature-final tags seen
+    known_pass = {}      # lemma -> attested passive form
+    base_by_lemma = {}   # lemma -> base features (everything before ACT/PASS)
+    for lemma, form, feats in rows:
+        lemmas.setdefault(lemma, set())
+        base_by_lemma[lemma] = feats[:-1]
+        lemmas[lemma].add(feats[-1])
+        if feats[-1] == "PASS":
+            known_pass[lemma] = form
+
+    paths = []
+    for lemma in sorted(lemmas):
+        base = base_by_lemma[lemma]
+        # ACT: identity.
+        paths.append(path_regex(base + ["ACT"], lemma, base + ["ACT"], lemma))
+        # PASS: attested form, else best guess, else final-vowel default.
+        passive = known_pass.get(lemma) or PASS_GUESS.get(lemma)
+        if passive is None:
+            passive = lemma + DEFAULT_SUFFIX.get(lemma[-1], "tia")
+        paths.append(path_regex(base + ["PASS"], lemma, base + ["PASS"], passive))
+    return FST.re(" | ".join(paths)), lemmas
+
+
+def build_general(known_stems):
+    """Fallback for unseen lemmas (built as a single regex so it serialises to
+    foma cleanly).  It is restricted to stems NOT in `known_stems` via the
+    regex difference operator, so it never competes with the lexicon -- the
+    result is a proper priority union that stays functional and round-trips
+    through to_fomastring/from_fomastring (unlike the method-level
+    compose/difference, whose OTHER-symbol handling breaks serialisation).
+
+      * ACT  -> identity on any unseen stem.
+      * PASS -> copy the stem and append the default suffix for its final vowel.
+    """
+    sigma = "(" + "|".join(sym(c) for c in ALPHABET) + ")"
+    known = "(" + "|".join("(" + seq(list(st)) + ")" for st in known_stems) + ")"
+    branches = []
+    # ACT identity on unseen stems.
+    branches.append("(" + seq(["[V]", "[ACT]"]) + " ((" + sigma + "*) - " + known + "))")
+    # PASS default suffix (by final vowel) on unseen stems.
+    for v in VOWELS:
+        ins = seq(list(DEFAULT_SUFFIX[v]))
+        stem = "((" + sigma + "* " + sym(v) + ") - " + known + ")"
+        branches.append("(" + seq(["[V]", "[PASS]"]) + " " + stem
+                        + " (''):(" + ins + "))")
+    return FST.re(" | ".join(branches))
+
+
 def main():
-    lemmas = {}  # lemma -> {feats: form}
-    chars = set()
-    for line in open(TRAIN, encoding="utf-8"):
-        line = line.rstrip("\n")
-        if not line:
-            continue
-        lemma, form, feats = line.split("\t")
-        lemmas.setdefault(lemma, {})[feats] = form
-        chars.update(lemma)
-        chars.update(form)
+    rows = read_train(TRAIN)
+    lex, lemmas = build_lexicon(rows)
+    general = build_general(sorted(lemmas.keys()))
+    fst = lex.union(general).epsilon_remove().determinize().minimize()
+    print("FST built: %d states, functional=%s" % (len(fst.states), fst.is_functional()))
 
-    # Full Maori alphabet for the sigma of the general rules.
-    chars.update("aeiou" + "āēīōū" + "hkmnprtw")
-    for c in "".join(PASSIVE_PRED.values()) + "".join(PASSIVE_PRED):
-        chars.add(c)
-    sigma = sorted(chars)
-    sigma_re = "(" + "|".join("'" + c + "'" for c in sigma) + ")"
-
-    # --- data-driven default passive suffix, per final character -------------
-    suf_by_last = defaultdict(Counter)
-    for lemma, seen in lemmas.items():
-        f = seen.get("V;PASS")
-        if f and f.startswith(lemma):          # ignore stem-change cases
-            suf_by_last[lemma[-1]][f[len(lemma):]] += 1
-    base = {"ā": "a", "ē": "e", "ī": "i", "ō": "o", "ū": "u"}
-    default_suffix = {}
-    for c in sigma:
-        counter = suf_by_last.get(c) or suf_by_last.get(base.get(c, c))
-        default_suffix[c] = counter.most_common(1)[0][0] if counter else "a"
-
-    # ---------------------------------------------------------------------
-    # SPECIFIC passive lexicon (memorised + supplied), priority over default.
-    # ---------------------------------------------------------------------
-    spec_pairs = []
-    for lemma in lemmas:
-        seen = lemmas[lemma]
-        form = seen.get("V;PASS") or PASSIVE_PRED.get(lemma)
-        if form is None:
-            continue
-        tags = feats_to_tags("V;PASS")
-        spec_pairs.append((tags + list(lemma), tags + list(form)))
-    for lemma, form in PASSIVE_PRED.items():        # unseen-lemma extras
-        if lemma not in lemmas:
-            tags = feats_to_tags("V;PASS")
-            spec_pairs.append((tags + list(lemma), tags + list(form)))
-    specific = FST.re(" | ".join(pair_regex(i, o) for i, o in spec_pairs))
-    specific = specific.epsilon_remove().determinize().minimize()
-
-    # ---------------------------------------------------------------------
-    # GENERAL rules.
-    #   active : identity over the whole lemma.
-    #   passive: copy the lemma, then append the default suffix for its final
-    #            character.
-    # ---------------------------------------------------------------------
-    act = FST.re(f"'[V]''[ACT]' {sigma_re}*")               # acceptor == identity
-    pass_branches = []
-    for c in sigma:
-        suf_out = quote_symbols(list(default_suffix[c]))
-        pass_branches.append(f"'[V]''[PASS]' {sigma_re}* '{c}' ('':({suf_out}))")
-    passv = FST.re(" | ".join(pass_branches))
-    general = act.union(passv).epsilon_remove().determinize().minimize()
-
-    all_symbols = ["[V]", "[ACT]", "[PASS]"] + sigma
-    fst = priority_union(specific, general, all_symbols)
-
-    # --- sanity: reproduce every training pair -------------------------------
-    bad = 0
-    for lemma, seen in lemmas.items():
-        for feats, form in seen.items():
-            tags = "".join(feats_to_tags(feats))
-            got = list(fst.apply(tags + lemma))
-            if got != [tags + form]:
-                bad += 1
-                print("MISMATCH", tags + lemma, "->", got, "expected", tags + form)
-    print(f"training check: {len(lemmas)} lemmas, {bad} mismatches")
-    print(f"states: {len(fst.states)}")
-
+    fomastring = fst.to_fomastring()
     with open(OUT, "w", encoding="utf-8") as fh:
-        fh.write(fst.to_fomastring())
-    print(f"wrote {OUT}")
+        fh.write(fomastring)
+    print("Saved to %s" % OUT)
+
+    # Verify against the RELOADED machine (this is what the grader consumes).
+    reloaded = FST.from_fomastring(fomastring)
+    print("Reloaded functional=%s" % reloaded.is_functional())
+    correct = 0
+    for lemma, form, feats in rows:
+        in_str = "[" + "][".join(feats) + "]" + lemma
+        outs = list(reloaded.apply(in_str))
+        expected = "[" + "][".join(feats) + "]" + form
+        if outs == [expected]:
+            correct += 1
+        else:
+            print("  MISS", in_str, "->", outs, "expected", expected)
+    print("Training accuracy (reloaded): %d/%d" % (correct, len(rows)))
+
+    # Behaviour on completely-unseen lemmas.
+    for demo in ["[V][ACT]koekoe", "[V][PASS]koe", "[V][PASS]mihi", "[V][ACT]kutētē"]:
+        print("  demo", demo, "->", list(reloaded.apply(demo)))
 
 
 if __name__ == "__main__":

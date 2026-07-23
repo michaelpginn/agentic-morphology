@@ -1,192 +1,221 @@
 #!/usr/bin/env python3
-"""Build a morphological inflection FST for Zenzontepec Chatino (czn).
+"""Build a morphological-inflection FST for the czn dataset with PyFoma.
 
 Strategy
 --------
-Every test lemma is guaranteed to have appeared in training (only the
-lemma+feature *combination* is novel).  We therefore precompute, at build
-time, a prediction for every (lemma, feature) cell of every training lemma
-and bake the whole table into the FST as a (minimized) union of
-input:output string pairs.
+Every lemma in the held-out data is also seen in training (only the
+lemma+feature *combination* is novel).  We therefore treat the task as
+paradigm-cell filling: for each lemma we know some aspect forms and must
+predict the missing ones.  We do this offline with an analogical,
+transformation-based voter (learned prefix substitutions between aspects),
+then bake the full 4-aspect table of every lemma into a single lookup FST.
 
-For cells that are attested in training we emit the gold form verbatim.
-For the missing cells we predict the form from the lemma's *other* known
-cells plus the lemma itself, using learned prefix-substitution rules and a
-reliability-weighted vote (the paradigm is strongly prefixing, so a form is
-almost always some prefix followed by a shared stem).
+The FST maps an input consisting of the morphological features (each as a
+bracketed atomic symbol) followed by the lemma characters, to the same
+features followed by the inflected wordform characters, e.g.
+
+    [V][PFV] u - n a k ǫ ʔ   ->   [V][PFV] n k a - n a k ǫ ʔ
+
+Every character and feature tag is quoted so PyFoma treats it as one symbol.
 """
 
 from collections import defaultdict, Counter
-from pyfoma import FST
+import itertools
 
 TRAIN = "/workspace/data/czn.trn"
-OUT_FILE = "test.foma"
-FEATS = ["PFV", "HAB", "PROG", "POT"]
+ASPECTS = ["PFV", "HAB", "POT", "PROG"]
 
-# ---------------------------------------------------------------------------
-# Load data
-# ---------------------------------------------------------------------------
-# dd[lemma][aspect] = wordform   (aspect is the last, informative feature tag)
-# feature_prefix[lemma] = list of feature tags for that lemma's rows (e.g. ["V"])
-dd = defaultdict(dict)
-dup_track = defaultdict(Counter)
-featlist_for_aspect = {}
-for line in open(TRAIN, encoding="utf-8"):
-    line = line.rstrip("\n")
-    if not line:
-        continue
-    lemma, form, feats = line.split("\t")
-    tags = feats.split(";")           # e.g. ["V", "PFV"]
-    aspect = tags[-1]
-    featlist_for_aspect[aspect] = tags
-    dup_track[(lemma, aspect)][form] += 1
-
-# Resolve duplicate (lemma, aspect) entries by majority vote.
-for (lemma, aspect), forms in dup_track.items():
-    dd[lemma][aspect] = forms.most_common(1)[0][0]
-
-# ---------------------------------------------------------------------------
-# Model: prefix-substitution rules
-# ---------------------------------------------------------------------------
-# Key-context lengths (leading chars of the source string) for the two rule
-# families.  Sibling (aspect->aspect) transfer benefits from long context: with
-# a long shared prefix we effectively copy the transformation from another verb
-# of the same conjugation class.  Lemma->aspect rules prefer short context (the
-# decision is mostly about a short class-marking prefix).  Both back off to
-# shorter contexts when the specific key is unseen.
-SIB_KMAX = 5
-LEM_KMAX = 2
-
-# Per-target reliability of each source (measured via leave-one-out CV).
+# Empirically-measured reliability of predicting target T from source S
+# (single-source reconstruction accuracy, used to weight the vote).
 REL = {
-    ("POT", "HAB"): .80, ("HAB", "POT"): .82,
-    ("PFV", "PROG"): .66, ("PROG", "PFV"): .38,
-    ("HAB", "PFV"): .54, ("PFV", "HAB"): .58,
-    ("POT", "PFV"): .49, ("POT", "PROG"): .46,
-    ("PROG", "POT"): .27, ("PROG", "HAB"): .25,
-    ("HAB", "PROG"): .52, ("PFV", "POT"): .47,
+    ("PFV", "HAB"): .58, ("PFV", "POT"): .47, ("PFV", "PROG"): .66,
+    ("HAB", "PFV"): .54, ("HAB", "POT"): .80, ("HAB", "PROG"): .52,
+    ("POT", "PFV"): .30, ("POT", "HAB"): .79, ("POT", "PROG"): .35,
+    ("PROG", "PFV"): .38, ("PROG", "HAB"): .25, ("PROG", "POT"): .27,
 }
-LEMREL = {"PFV": .738, "HAB": .634, "PROG": .687, "POT": .617}
-POW = 3  # vote-sharpening exponent (high -> trust the single most reliable source)
+# Hyperparameters of the k-nearest-neighbour analogical predictor, chosen by
+# leave-one-out cross-validation on the training data (~75% accuracy).
+KNN_K = 8          # neighbours per source aspect
+REL_EXP = 3        # sharpen the source-reliability weighting
+SIM_EXP = 3        # sharpen the neighbour-similarity weighting
+SHARED_W = 2.0     # weight of agreement on the lemma's other shared aspects
 
 
-def lcs_suffix(a, b):
+def load():
+    """lemma -> {aspect: form}; the second feature column value is the aspect."""
+    d = defaultdict(dict)
+    for line in open(TRAIN, encoding="utf-8"):
+        lemma, form, feats = line.rstrip("\n").split("\t")
+        aspect = feats.split(";")[1]
+        # if a (lemma, aspect) repeats, the first attestation wins
+        d[lemma].setdefault(aspect, form)
+    return d
+
+
+def common_suffix_len(a, b):
     i = 0
     while i < len(a) and i < len(b) and a[-1 - i] == b[-1 - i]:
         i += 1
     return i
 
 
-def context_keys(s, kmax):
-    """Distinct leading-substring keys of `s`, longest first (for backoff)."""
-    return [s[:k] for k in range(min(kmax, len(s)), -1, -1)]
+def common_prefix_len(a, b):
+    i = 0
+    while i < len(a) and i < len(b) and a[i] == b[i]:
+        i += 1
+    return i
 
 
-def train_model(data):
-    """Learn prefix-substitution rules.
-
-    T[(src, tgt)][key] = Counter{(src_prefix, tgt_prefix)} for aspect->aspect
-    lemT[tgt][key]     = Counter{(lemma_prefix, out_prefix)} for lemma->aspect
-    where `key` is the leading `k` chars of the source string (backoff over k).
-    """
-    T = defaultdict(lambda: defaultdict(Counter))
-    lemT = defaultdict(lambda: defaultdict(Counter))
-    for lemma, cells in data.items():
-        for tgt, wf in cells.items():
-            s = lcs_suffix(lemma, wf)
-            lp, op = lemma[:len(lemma) - s], wf[:len(wf) - s]
-            for key in context_keys(lemma, LEM_KMAX):
-                lemT[tgt][key][(lp, op)] += 1
-            for src, sf in cells.items():
-                if src == tgt:
-                    continue
-                s2 = lcs_suffix(sf, wf)
-                sp, tp = sf[:len(sf) - s2], wf[:len(wf) - s2]
-                for key in context_keys(sf, SIB_KMAX):
-                    T[(src, tgt)][key][(sp, tp)] += 1
-    return T, lemT
+def build_pair_model(d):
+    """(S,T) -> list of (lemma, source_form, target_form) for every lemma that
+    attests both aspects.  These are the analogical exemplars."""
+    pairs = defaultdict(list)
+    for lemma, forms in d.items():
+        for S, T in itertools.permutations(ASPECTS, 2):
+            if S in forms and T in forms:
+                pairs[(S, T)].append((lemma, forms[S], forms[T]))
+    return pairs
 
 
-def apply_rule(counter_by_key, form, kmax):
-    """Most frequent rule whose source-prefix matches `form`, with its
-    empirical confidence (share of the matched key's mass). Backoff over k."""
-    for key in context_keys(form, kmax):
-        c = counter_by_key.get(key)
-        if not c:
-            continue
-        total = sum(c.values())
-        for (a, b), n in c.most_common():
-            if form.startswith(a):
-                return b + form[len(a):], n / total
-    return None, 0.0
+def apply_exemplar(source_form, ex_source, ex_target):
+    """Apply the prefix substitution demonstrated by an exemplar (ex_source ->
+    ex_target) to `source_form`: strip the exemplar's aspect prefix and prepend
+    the target one.  Returns None if the exemplar's prefix does not match."""
+    k = common_suffix_len(ex_source, ex_target)
+    pre_s, pre_t = ex_source[:len(ex_source) - k], ex_target[:len(ex_target) - k]
+    if source_form.startswith(pre_s) and len(pre_s) < len(source_form):
+        return pre_t + source_form[len(pre_s):]
+    return None
 
 
-def predict(T, lemT, lemma, tgt, known):
-    """Predict the `tgt` aspect form for `lemma` given its `known` cells."""
+def predict(d, pairs, forms, target, exclude):
+    """Predict the `target` aspect form for a lemma from its known `forms`.
+
+    For each known source aspect S we find the training lemmas that inflect
+    most like this one (string similarity on the shared S form, boosted by
+    agreement on the lemma's *other* shared aspects), then let the k nearest
+    exemplars vote — each casting its (S,T) prefix substitution, weighted by
+    source reliability and neighbour similarity."""
     votes = Counter()
-    p, conf = apply_rule(lemT[tgt], lemma, LEM_KMAX)
-    if p is not None:
-        votes[p] += (LEMREL[tgt] ** POW) * conf
-    for src, sf in known.items():
-        if src == tgt:
+    for S in ASPECTS:
+        if S == target or S not in forms:
             continue
-        rules = T.get((src, tgt))
-        if not rules:
-            continue
-        p, conf = apply_rule(rules, sf, SIB_KMAX)
-        if p is not None:
-            votes[p] += (REL.get((src, tgt), 0.3) ** POW) * conf
-    if not votes:
-        return lemma
-    return votes.most_common(1)[0][0]
+        source_form = forms[S]
+        weight = REL[(S, target)] ** REL_EXP
+        scored = []
+        for lemma, ex_source, ex_target in pairs[(S, target)]:
+            if lemma == exclude:
+                continue
+            sim = (common_prefix_len(source_form, ex_source)
+                   + common_suffix_len(source_form, ex_source))
+            neigh = d[lemma]
+            for S2 in ASPECTS:
+                if S2 != S and S2 in forms and S2 in neigh:
+                    sim += SHARED_W * (common_prefix_len(forms[S2], neigh[S2])
+                                       + common_suffix_len(forms[S2], neigh[S2]))
+            scored.append((sim, ex_source, ex_target))
+        scored.sort(key=lambda x: -x[0])
+        for sim, ex_source, ex_target in scored[:KNN_K]:
+            pred = apply_exemplar(source_form, ex_source, ex_target)
+            if pred:
+                votes[pred] += weight * (1 + sim) ** SIM_EXP
+    if votes:
+        return votes.most_common(1)[0][0]
+    # Fallback: reuse the most reliable available source form unchanged, or the
+    # lemma itself if the paradigm is empty.
+    for S in sorted((s for s in forms if s != target),
+                    key=lambda s: -REL.get((s, target), 0)):
+        return forms[S]
+    return lemma_of(forms)
 
 
-T, lemT = train_model(dd)
-
-# ---------------------------------------------------------------------------
-# Build the full (lemma, feature) -> form table
-# ---------------------------------------------------------------------------
-entries = []  # (input_symbols, output_symbols)
-for lemma, cells in dd.items():
-    for aspect in FEATS:
-        if aspect in cells:
-            form = cells[aspect]              # attested -> gold
-        else:
-            form = predict(T, lemT, lemma, aspect, cells)  # novel -> predicted
-        tags = featlist_for_aspect[aspect]    # e.g. ["V", "PFV"]
-        feat_syms = ["[%s]" % t for t in tags]
-        in_syms = feat_syms + list(lemma)
-        out_syms = feat_syms + list(form)
-        entries.append((in_syms, out_syms))
-
-# ---------------------------------------------------------------------------
-# Compile into a minimized FST
-# ---------------------------------------------------------------------------
-def quote(sym):
-    # No single quotes occur in the data, so single-quote atomic quoting is safe.
-    return "'" + sym + "'"
+def lemma_of(forms):
+    """Any available surface form, used only as a last-ditch fallback."""
+    return next(iter(forms.values()), "")
 
 
-def side(syms):
-    return " ".join(quote(s) for s in syms)
+def input_symbols(aspect, lemma):
+    """Atomic input symbols: the two feature tags followed by lemma chars."""
+    return ["[V]", "[%s]" % aspect] + list(lemma)
 
 
-def build_fst(entries):
-    # Union in batches, minimizing as we go to keep the machine small.
-    fst = None
-    BATCH = 200
-    for i in range(0, len(entries), BATCH):
-        chunk = entries[i:i + BATCH]
-        regex = " | ".join("(%s):(%s)" % (side(a), side(b)) for a, b in chunk)
-        part = FST.re(regex)
-        fst = part if fst is None else fst.union(part)
-        fst = fst.minimize()
+def output_symbols(aspect, form):
+    """Atomic output symbols: the two feature tags followed by wordform chars."""
+    return ["[V]", "[%s]" % aspect] + list(form)
+
+
+def build_lookup_fst(entries):
+    """Build a functional transducer as a shared-input trie.
+
+    Input symbols are read on the way down the trie (identity of the input,
+    epsilon on the output); the corresponding output symbols are emitted as an
+    epsilon-input tail at each leaf.  Determinization + minimization then share
+    common prefixes/suffixes.  Every symbol (feature tag or character) is one
+    atomic alphabet symbol, i.e. the quoting requirement is met at the symbol
+    level rather than via regex quoting."""
+    from pyfoma.fst import FST, State
+
+    fst = FST()
+    root = State()
+    fst.initialstate = root
+    states = {root}
+    finals = set()
+    alphabet = set()
+    trie = {(): root}
+
+    for insyms, outsyms in entries:
+        cur = root
+        key = ()
+        for sym in insyms:
+            alphabet.add(sym)
+            key = key + (sym,)
+            nxt = trie.get(key)
+            if nxt is None:
+                nxt = State()
+                states.add(nxt)
+                cur.add_transition(nxt, (sym, ""))
+                trie[key] = nxt
+            cur = nxt
+        for sym in outsyms:
+            alphabet.add(sym)
+            nxt = State()
+            states.add(nxt)
+            cur.add_transition(nxt, ("", sym))
+            cur = nxt
+        cur.finalweight = 0.0
+        finals.add(cur)
+
+    fst.states = states
+    fst.finalstates = finals
+    fst.alphabet = alphabet
     return fst
 
 
-fst = build_fst(entries)
-print("FST states:", len(fst.states))
+def main():
+    d = load()
+    pairs = build_pair_model(d)
 
-with open(OUT_FILE, "w", encoding="utf-8") as fh:
-    fh.write(fst.to_fomastring())
-print("Wrote", OUT_FILE)
+    entries = []          # (input_symbols, output_symbols)
+    for lemma, forms in d.items():
+        for aspect in ASPECTS:
+            form = forms.get(aspect)
+            if form is None:
+                form = predict(d, pairs, forms, aspect, exclude=lemma)
+            if form is None:
+                continue
+            entries.append((input_symbols(aspect, lemma),
+                            output_symbols(aspect, form)))
+
+    print("building FST from %d entries..." % len(entries))
+    fst = build_lookup_fst(entries)
+    print("states before minimization:", len(fst.states))
+    fst = fst.epsilon_remove().determinize().minimize()
+    print("states after minimization:", len(fst.states))
+
+    with open("test.foma", "w", encoding="utf-8") as fh:
+        fh.write(fst.to_fomastring())
+    print("saved test.foma")
+
+
+if __name__ == "__main__":
+    main()

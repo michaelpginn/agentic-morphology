@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 export DATASET="$1"
 export LANG="$2"
-: "${ANTHROPIC_API_KEY:?Set ANTHROPIC_API_KEY in your environment}"
+: "${CLAUDE_CODE_OAUTH_TOKEN=:?Set CLAUDE_CODE_OAUTH_TOKEN= in your environment}"
 
 prompt="Write a script called build_fst.py using the PyFoma library, which is already installed in the system python, that creates and saves an FST for the provided data. The primary goal is to produce an FST that is accurate, with a secondary goal of making the FST as compact as possible (minimal number of states).
 
 Training data is morphological inflection data /workspace/data/$LANG.trn, consisting of a three column format where the first column is the input string (a lemma), the second column is the output string (the inflected wordform), and the third column is a semicolon-deliminated list of morphological features. Your FST should take inputs formatted with the features first, where each feature adds square brackets, such as [PL][PRS]. Furthermore, you should use PyFoma's quoting feature to ensure each character or feature is an atomic symbol. A full input might look like: '[PL]''[PRS]''r''u''n'. The expected output repeats back the feature tags in the same way, followed by each character of the inflected wordform, again quoted. Your FST only needs to generalize to unseen lemma+feature combinations, not completely unseen lemmas.
 
-Your script may use any strategy to build the FST. There are many possible ways, such as using the ^rewrite function to implement rewrite rules, using the lexd compiler, or simply coding FST regexes directly. At the end of the script, you should save the FST by first calling to_fomastring() and then saving the fomastring to a file, which should be named test.foma.
+Your script may use any strategy to build the FST. Before doing anything, you should read the skills in /workspace/skills/SKILL.md to learn how to use PyFoma. At the end of the script, you should save the FST by first calling to_fomastring() and then saving the fomastring to a file, which should be named test.foma.
 
 You can test your FST against the training data as much as you'd like. To test against the held-out dev and test sets, run the following:
     > sudo /opt/grader/grade test.foma --lang $LANG

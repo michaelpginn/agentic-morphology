@@ -25,7 +25,7 @@ services:
       # Disables auto-updater / telemetry / error reporting so api.anthropic.com
       # is the only domain Claude Code needs.
       - CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:?set ANTHROPIC_API_KEY}
+      - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:?set CLAUDE_CODE_OAUTH_TOKEN}
     volumes:
       - ./data/${DATASET:?set DATASET}/${LANG:?set LANG}.trn:/workspace/data/${LANG}.trn:ro
       - ./data/${DATASET}/${LANG}.dev:/opt/grader/data/${LANG}.dev:ro

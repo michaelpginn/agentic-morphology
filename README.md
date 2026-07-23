@@ -6,6 +6,7 @@ Build the docker image and make the eval script executable (only once):
 
 ```bash
 docker build .
+DATASET=x LANG=x ANTHROPIC_API_KEY=x docker compose build agent
 chmod +x eval_claude.sh
 ```
 
