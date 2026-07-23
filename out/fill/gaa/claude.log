@@ -1,0 +1,804 @@
+I'll start by reading the PyFoma skill documentation.
+→ Read: /workspace/skills/SKILL.md
+    1	---
+    2	name: pyfoma-morphology
+    3	description: Build and review complex morphological analyzers/generators in PyFoma with clear separation of lexd morphotactics and FST.re morphophonology, including robust handling of tagging, rule ordering, reduplication, root-pattern morphology, and regression testing.
+    4	---
+    5	
+    6	# pyfoma-morphology skill
+    7	
+    8	This skill is for implementing or reviewing production-quality morphology grammars in PyFoma.
+    9	
+    10	Use with:
+    11	- `references/REFERENCE.md` for PyFoma regex/rewrite details and design patterns.
+    12	- `references/LEXD.md` for full lexd syntax and semantics in this repository.
+    13	
+    14	## Output expectations
+    15	
+    16	When asked to build or revise a grammar, produce:
+    17	1. Grammar code:
+    18	   - `lexd` + rule cascade when `lexd` is available
+    19	   - `FST.re` lexical transducer + rule cascade when `lexd` is unavailable
+    20	2. A minimal executable test snippet that verifies generation and analysis.
+    21	3. Short notes on rule ordering and known edge cases.
+    22	4. A brief generalization note:
+    23	   - productive pattern(s)
+    24	   - explicit exception list
+    25	   - why each lexical class marker is needed (if any)
+    26	
+    27	## Analyzer objectives
+    28	
+    29	A morphological analyzer is not a memorized pair list. It should:
+    30	- encode productive inflection with general rules
+    31	- keep lexical listing for stems and true irregular exceptions
+    32	- map lexical strings with tags to clean orthographic outputs
+    33	- map orthographic outputs back to lexical analyses
+    34	
+    35	## Workflow
+    36	
+    37	### 1. Define lexical contract before coding
+    38	
+    39	Freeze these first:
+    40	- Tag inventory: `<N>`, `<V>`, `<Past>`, `<Pl>`, etc.
+    41	- Boundary symbols used during intermediate forms (often `+`).
+    42	- Intermediate morpheme policy:
+    43	  - prefer canonical morphs with boundaries (for example `+s`, `+es`)
+    44	  - default rule: do not use abstract markers like `+PL`
+    45	  - exception only if canonical morph representation is demonstrably impractical in the runtime, and the reason is documented
+    46	- Expected API usage:
+    47	  - `generate(lexical)` for generation
+    48	  - `analyze(surface)` for analysis
+    49	- Side contract:
+    50	  - lexical side may contain tags and temporary class markers
+    51	  - final surface side must contain only orthographic wordforms (no tags, no `SG/PL` markers, no `+`)
+    52	
+    53	If this contract is unstable, delay rule-writing.
+    54	
+    55	### 2. Build morphotactics with lexd
+    56	
+    57	Use `lexd.compile(...)` for:
+    58	- Paradigm structure and affix sequencing
+    59	- Lexically conditioned alternation choices (via tags/selectors)
+    60	- Non-concatenative structure supported by this implementation (reduplication/root-pattern patterns)
+    61	
+    62	Keep phonological alternation out of lexd unless it is true suppletion/irregular listing.
+    63	If a stem-internal alternation is substantially clearer as a direct transducer over
+    64	full stems, model that alternation in `FST.re` and keep lexd for class/tag routing.
+    65	
+    66	Anti-pattern to avoid:
+    67	- Do not list productive pluralized outputs directly per noun in lexd.
+    68	- Do not encode singular/plural as literal output strings like `catSG`, `catPL`, etc.
+    69	- If multiple lemmas share behavior, model it once with a rule and (if needed) a lexical class marker.
+    70	- Do not create many ad hoc lexical class markers when the behavior can be expressed by orthographic/phonological context rules.
+    71	- Do not use one-off marker classes unless they are true exceptions and documented as such.
+    72	
+    73	### 2.1 If `lexd` is unavailable
+    74	
+    75	Fallback to `FST.re` without changing grammar design principles:
+    76	- Build a stem inventory FST.
+    77	- Build an inflection/tag transducer FST.
+    78	- Compose them into a lexical transducer.
+    79	- Keep productive alternations in rewrite rules.
+    80	
+    81	Even in fallback mode:
+    82	- do not collapse into per-lemma hard-coding
+    83	- keep an explicit productive/default vs exception split
+    84	
+    85	### 3. Validate morphotactics in isolation
+    86	
+    87	Before adding rewrite rules:
+    88	- Test at least 10 positive lexical->surface pairs.
+    89	- Test at least 10 positive surface->lexical pairs.
+    90	- Test at least 5 negative forms.
+    91	- Verify morphotactic stage still contains expected intermediate markers (if any) and has not baked in full productive alternations.
+    92	
+    93	Do not proceed to morphophonology until these pass.
+    94	
+    95	### 4. Add rewrite rules incrementally
+    96	
+    97	Write one process per rule using `FST.re("$^rewrite(...)")`.
+    98	
+    99	Required discipline:
+    100	- Keep each rule name descriptive.
+    101	- Add one comment example per rule.
+    102	- Preserve boundaries/tags until final cleanup.
+    103	- Prefer rules stated over natural symbol classes/contexts (e.g., vowel-final vs consonant-final), not rules tied to tiny hand-built categories.
+    104	- If a rule only handles one or two lexemes, move that behavior to an explicit exception path instead of pretending it is productive.
+    105	- Prefer rewriting against canonical intermediate morphs (e.g., `+s`, `+es`) rather than abstract grammatical placeholders when possible.
+    106	- If abstract placeholders are used temporarily during development, convert to canonical morph representation before final delivery unless a documented exception applies.
+    107	
+    108	Compose strictly as a left-to-right cascade:
+    109	
+    110	```python
+    111	final = FST.re("$lexicon @ $rule1 @ $rule2 @ $rule3 @ $cleanup", fsts)
+    112	```
+    113	
+    114	### 5. Test each rule after composition
+    115	
+    116	After each new rule:
+    117	- Re-run small focused tests for the new phenomenon.
+    118	- Re-run previous regression cases.
+    119	- Verify both `generate` and `analyze`.
+    120	
+    121	For overlapping matches, explicitly test default vs directed behavior:
+    122	- `leftmost=True`
+    123	- `longest=True`
+    124	- `shortest=True`
+    125	
+    126	### 6. Add irregularity explicitly
+    127	
+    128	Prefer separate lexicon paths for irregulars instead of forcing them into productive rules.
+    129	
+    130	Example pattern:
+    131	- Productive stems in `NounRoot` + productive inflection.
+    132	- Irregular whole forms in `IrregularNoun` lexicon block.
+    133	
+    134	Irregular-path exclusivity rule:
+    135	- Do not let an irregular lemma also flow through an unblocked productive path.
+    136	- Either keep irregular lemmas out of productive stem classes, or add selector/class
+    137	  tags (for example `[irreg]`, `[noplural]`) that explicitly block the productive
+    138	  paradigm for those lemmas.
+    139	
+    140	### 7. Final QA
+    141	
+    142	Pass criteria:
+    143	- Stable tag scheme and readable grammar layout.
+    144	- No rule relies on symbols already deleted by earlier rules.
+    145	- No unexplained nondeterminism in expected deterministic cases.
+    146	- Regression set includes productive, irregular, and edge cases.
+    147	- Gold-set automaton checks are run for coverage and overgeneration:
+    148	  `grammar @ gold` and `grammar @ ~gold`, plus projection-set diffs if needed
+    149	  (`gold - output(grammar)`, `output(grammar) - gold`).
+    150	- Surface-side hygiene checks pass:
+    151	  - no `<...>` tags in generated forms
+    152	  - no `+` boundary symbols in generated forms
+    153	  - no grammatical marker suffixes/prefixes like `SG`, `PL` in generated forms
+    154	- Overfitting checks pass:
+    155	  - productive rules are few and broad, not many micro-rules for tiny subsets
+    156	  - each lexical marker class is linguistically named and justified
+    157	  - exception handling is explicit and separated from productive rules
+    158	- Irregular exclusivity checks pass:
+    159	  - no unintended regular variants for irregular lemmas (unless explicitly intended)
+    160	- Intermediate representation checks pass:
+    161	  - no abstract inflection placeholders in the final grammar unless explicitly justified
+    162	
+    163	## Compact lexd guide (full details in `references/LEXD.md`)
+    164	
+    165	Core sections:
+    166	- `PATTERNS`
+    167	- `PATTERN Name`
+    168	- `LEXICON Name`
+    169	- `ALIAS Source Alias`
+    170	
+    171	Frequent operators/features:
+    172	- `?`, `*`, `+`, `|`
+    173	- Grouping: `( ... )`
+    174	- Anonymous lexicon: `[ ... ]`
+    175	- Selectors: `[tag]`, `[-tag]`, `[|[a,b]]`, `[^[a,b]]`
+    176	- Columns: `Root(2)`
+    177	- Side markers: `:Lex`, `Lex:`
+    178	- Paired columns: `X(1):X(2)`, `X(1):Y(2)`
+    179	- Optional segmented lexicon: `Name?(1)`
+    180	- Sieve expansion: `<`, `>`
+    181	
+    182	Critical semantic points:
+    183	- Repeating the same lexicon in one sequence usually binds the same chosen entry.
+    184	- Use `ALIAS` when repeated positions should vary independently.
+    185	- Tag selectors constrain combinations but do not emit symbols.
+    186	
+    187	Design-quality points:
+    188	- Lexical class markers are a last resort, not the first strategy.
+    189	- Prefer one productive rule plus a small exception list over many marker-specific rules.
+    190	
+    191	## Guardrails
+    192	
+    193	- In `FST.re`, always quote multichar symbols: `'<N>'`, `'+'`, `'{A}'`.
+    194	- Treat wildcard `.` as advanced; avoid accidental use.
+    195	- Keep morphotactics and morphophonology separate.
+    196	- Prefer several small rules to one unreadable mega-rule.
+    197	- Never assume generator/analyzer output order is stable.
+    198	
+    199	## Minimal starter template
+    200	
+    201	```python
+    202	from pyfoma import FST, lexd
+    203	
+    204	fsts = {}
+    205	
+    206	fsts['lexicon'] = lexd.compile(r'''
+    207	PATTERNS
+    208	NounRoot NounInfl
+    209	
+    210	LEXICON NounRoot
+    211	house
+    212	spy
+    213	church
+    214	
+    215	LEXICON NounInfl
+    216	<N><Sg>:
+    217	<N><Pl>:+s
+    218	''')
+    219	
+    220	fsts['y_to_ie'] = FST.re("$^rewrite(y:(ie) / _ '+' s)")
+    221	fsts['epenthesis'] = FST.re("$^rewrite('':e / (sh|ch|x|s|z) _ '+' s)")
+    222	fsts['cleanup'] = FST.re("$^rewrite('+':'')")
+    223	
+    224	grammar = FST.re("$lexicon @ $y_to_ie @ $epenthesis @ $cleanup", fsts)
+    225	
+    226	print(list(grammar.generate("spy<N><Pl>")))
+    227	print(list(grammar.analyze("churches")))
+    228	```
+    229	
+→ Bash: wc -l /workspace/data/gaa.trn; head -20 /workspace/data/gaa.trn
+    607 /workspace/data/gaa.trn
+    gbele	gbele	V;HAB;PRS
+    joo	joo	V;NFIN
+    he	he	V;NFIN
+    ŋa	ŋako	V;HAB;NEG;PRS
+    gbi	gbi	V;NFIN
+    sele	seleko	V;HAB;NEG;PRS
+    kɔɔ	baakɔɔ	V;HAB;FUT
+    wɔlɔmɔ	wɔlɔmɔ	V;NFIN
+    kɔɔ	kɔɔee	V;NEG;PRS
+    sɔle	sɔle	V;NFIN
+    joo	baajoo	V;HAB;FUT
+    la	laee	V;HAB;NEG;FUT
+    bɔ	bɔ	V;NFIN
+    faa	faaee	V;NEG;PRS
+    sele	seleee	V;HAB;NEG;PST
+    tsɔɔ	baatsɔɔ	V;HAB;FUT
+    fɔ	fɔee	V;NEG;PRS
+    sɔle	sɔleee	V;HAB;NEG;FUT
+    tsa	tsaee	V;HAB;NEG;FUT
+    kota	kotako	V;HAB;NEG;PRS
+→ Read: /workspace/skills/references/REFERENCE.md
+    1	# PyFoma morphology reference
+    2	
+    3	This document is a practical reference for writing analyzers/generators in PyFoma.
+    4	
+    5	For detailed lexd syntax and semantics, see `LEXD.md`.
+    6	
+    7	## 1. Core build model
+    8	
+    9	Recommended architecture:
+    10	1. Build lexical transducer (morphotactics + lexical tags) with `lexd.compile(...)`.
+    11	2. Build morphophonological rules as separate FSTs with `FST.re("$^rewrite(...)")`.
+    12	3. Compose in linguistic order:
+    13	
+    14	```python
+    15	grammar = FST.re("$lexicon @ $rule1 @ $rule2 @ $rule3 @ $cleanup", fsts)
+    16	```
+    17	
+    18	Treat composition order as part of grammar correctness.
+    19	
+    20	## 1.1 Analyzer design goal
+    21	
+    22	A morphological analyzer should represent a compact system of:
+    23	- productive morphological rules
+    24	- lexical inventory
+    25	- explicit exceptions
+    26	
+    27	It should not behave like a disguised lookup table where most behavior is encoded
+    28	as lexeme-specific classes or one-off rules.
+    29	
+    30	## 2. Core APIs
+    31	
+    32	```python
+    33	from pyfoma import FST, lexd
+    34	
+    35	fst = FST.re("...")
+    36	lex = lexd.compile("""...""")
+    37	```
+    38	
+    39	- `FST.re(regex, defined=None, functions=None, multichar_symbols=None)`.
+    40	- `lexd.compile(grammar)`.
+    41	- `fst.generate(lexical_string)` yields surfaces.
+    42	- `fst.analyze(surface_string)` yields analyses.
+    43	
+    44	`generate`/`analyze` are generators. Use `list(...)` in tests.
+    45	
+    46	If `lexd` is unavailable in the runtime, build the lexical transducer with `FST.re`
+    47	from reusable parts (stems + inflection/tag mapping) and keep the same design
+    48	discipline: productive rules + explicit exceptions.
+    49	
+    50	## 3. PyFoma regex essentials
+    51	
+    52	### 3.1 Symbols and quoting
+    53	
+    54	- Whitespace in regex is insignificant unless escaped or quoted.
+    55	- Epsilon is `''`.
+    56	- Multichar symbols must be quoted in regex:
+    57	  - `'<N>'`, `'<Pl>'`, `'+'`, `'{A}'`
+    58	
+    59	### 3.2 Reusing compiled FSTs
+    60	
+    61	```python
+    62	fsts = {}
+    63	fsts['stem'] = FST.re("house|spy|church")
+    64	fsts['infl'] = FST.re("('<N>' '<Sg>'):'' | ('<N>' '<Pl>'):('+' s)")
+    65	fsts['lexicon'] = FST.re("$stem $infl", fsts)
+    66	```
+    67	
+    68	### 3.3 Operators used most in morphology
+    69	
+    70	- Concatenation: adjacency (`A B`)
+    71	- Union: `A | B`
+    72	- Cross-product: `A:B`
+    73	- Optional cross-product: `A:?B`
+    74	- Composition: `A @ B`
+    75	- Optional/repetition: `?`, `*`, `+`, `{m,n}`
+    76	
+    77	### 3.4 Wildcard caution
+    78	
+    79	`.` is not a normal literal period. It is wildcard behavior tied to automaton alphabet semantics.
+    80	Completely avoid use of literal periods. If you need a syllable separator, use a hyphen or some other symbol instead.
+    81	
+    82	## 4. Rewrite rules
+    83	
+    84	### 4.1 Basic usage
+    85	
+    86	```python
+    87	FST.re("$^rewrite(y:(ie) / _ '+' s)")
+    88	FST.re("$^rewrite('':e / (sh|ch|x|s|z) _ '+' s)")
+    89	FST.re("$^rewrite('+':'')")
+    90	```
+    91	
+    92	### 4.2 Context and directionality
+    93	
+    94	- Context form: `... / LEFT _ RIGHT`
+    95	- Optional rewrite behavior: use optional cross-product in rule mapping (e.g. `a:?b`).
+    96	- Directed overlap control:
+    97	  - `leftmost=True`
+    98	  - `longest=True`
+    99	  - `shortest=True`
+    100	
+    101	Test directed rules explicitly on overlapping inputs.
+    102	
+    103	### 4.3 Rule-writing style
+    104	
+    105	- One linguistic process per rule.
+    106	- Keep intermediate markers (like `+`) until cleanup.
+    107	- Add one comment example per rule.
+    108	
+    109	## 5. Practical grammar design
+    110	
+    111	### 5.1 Separation of concerns
+    112	
+    113	- `lexd`: morphotactics, paradigms, lexical selection logic, irregular listing.
+    114	- `FST.re` rules: alternation, insertion, deletion, assimilation, cleanup.
+    115	
+    116	### 5.1.1 Tool-fit policy
+    117	
+    118	Do not force every phenomenon into lexd.
+    119	
+    120	Use lexd when the hard part is morphotactic structure (what combines with what).
+    121	Use direct transducer/rule modeling when the hard part is stem-internal alternation
+    122	over full forms (for example, templatic alternation or broken-plural-like mappings).
+    123	
+    124	### 5.2 Lexical-vs-surface side contract
+    125	
+    126	- Lexical side may contain grammatical tags and temporary class markers.
+    127	- Final surface side should contain only real orthographic wordforms.
+    128	- Never expose grammatical payload in outputs (no `<N>`, `<Pl>`, `+`, `SG`, `PL`, etc.).
+    129	
+    130	### 5.3 Productive vs irregular
+    131	
+    132	Keep productive morphology and irregular paradigms separate in lexical design.
+    133	
+    134	For irregular lemmas, enforce path exclusivity:
+    135	- either keep irregular lemmas out of productive stem classes
+    136	- or tag them (`[irreg]`, `[noplural]`, etc.) and block productive paths with selectors
+    137	
+    138	Otherwise you risk parallel outputs (intended irregular plus unintended regular).
+    139	
+    140	### 5.4 Intermediate representations
+    141	
+    142	Use explicit intermediate symbols (such as `+` boundary or temporary markers) when they make rule triggering predictable.
+    143	
+    144	Preferred style for inflectional morphology:
+    145	- represent canonical morphemes on the intermediate surface (`+s`, `+es`, etc.)
+    146	- keep grammatical features (`<Pl>`, `<Sg>`) on the lexical side
+    147	
+    148	Release default:
+    149	- do not use abstract placeholders like `+PL` in final grammars.
+    150	
+    151	Exception policy:
+    152	- allow abstract placeholders only when canonical morph representation is demonstrably impractical in the runtime.
+    153	- if used, document the technical reason and keep the placeholder scope minimal.
+    154	
+    155	### 5.5 Avoid hard-coding productive alternation
+    156	
+    157	If a pattern applies to many lexemes, encode it as a general rule, not as lexeme-by-lexeme surface listings.
+    158	
+    159	Bad direction:
+    160	- listing plural outputs per noun directly in lexd for regular classes.
+    161	
+    162	Good direction:
+    163	- keep lemma inventory in lexd
+    164	- use shared class markers when needed
+    165	- apply one plural allomorphy/orthography rule per process in the cascade
+    166	
+    167	### 5.6 Class-marker policy
+    168	
+    169	Class markers are allowed, but should be controlled:
+    170	- Use them only when behavior is not cleanly expressible by reusable contexts.
+    171	- Give each marker a linguistic meaning (not ad hoc labels like “group1/group2”).
+    172	- Prefer a small explicit exception lexicon over proliferating marker classes.
+    173	- Document why each marker class exists and which lexemes it covers.
+    174	
+    175	If a marker class has very small support and no clear linguistic rationale, treat
+    176	it as an exception path instead of productive grammar.
+    177	
+    178	### 5.7 Rule specificity policy
+    179	
+    180	Rules should primarily reference structural contexts (symbol classes, boundaries,
+    181	morpheme position), not tiny handpicked substrings.
+    182	
+    183	Warning signs of overfitting:
+    184	- many narrowly targeted rules to force individual words to pass
+    185	- rules that only work because of custom per-lemma marker injection
+    186	- no clear productive default behavior statement
+    187	
+    188	## 6. Testing protocol
+    189	
+    190	Minimum viable checks for each grammar revision:
+    191	1. Positive generation tests.
+    192	2. Positive analysis tests.
+    193	3. Negative invalid-form tests.
+    194	4. Regression set for previously fixed cases.
+    195	5. Lexicon-stage sanity checks (before phonological rules).
+    196	6. Model-shape checks (productive rules vs exceptions).
+    197	
+    198	Do not rely on output order from `generate`/`analyze`.
+    199	
+    200	Lexicon-stage sanity checks should verify that productive alternation is not already hard-coded.
+    201	Example: regular plural candidates at lexicon stage should still carry intermediate markers,
+    202	not already-final allomorphs.
+    203	
+    204	Model-shape checks should verify:
+    205	- you can name the productive default(s) in one or two sentences
+    206	- exception list is explicit and bounded
+    207	- rule count is not inflated by many one-off fixes
+    208	- intermediate representation uses canonical morphemes unless a justified exception exists
+    209	- irregular lemmas do not leak into unintended productive outputs
+    210	
+    211	### 6.1 Gold-set automaton checks
+    212	
+    213	Besides per-form `generate`/`analyze` assertions, do global checks by composing
+    214	the grammar against a finite automaton of gold forms.
+    215	
+    216	```python
+    217	from pyfoma import FST
+    218	
+    219	fsts['gold'] = FST.re("house|houses|bag|bags|spy|spies|church|churches|wish|wishes|buzz|buzzes")
+    220	```
+    221	
+    222	Useful checks:
+    223	- `FST.re("$grammar @ $gold", fsts)`:
+    224	  isolates grammar behavior on the gold language.
+    225	- `FST.re("$grammar @ ~$gold", fsts)`:
+    226	  isolates generated/analyzed behavior outside gold (overgeneration candidates).
+    227	
+    228	Use these as debugging networks and inspect with `generate`/`analyze` on targeted items.
+    229	
+    230	If you want explicit missing/extra output sets, compare against output projection:
+    231	
+    232	```python
+    233	fsts['generated_out'] = FST.re("$^output($grammar)", fsts)
+    234	fsts['missing_out'] = FST.re("$gold - $generated_out", fsts)
+    235	fsts['extra_out'] = FST.re("$generated_out - $gold", fsts)
+    236	```
+    237	
+    238	Add an explicit irregular-leak check for known lemmas:
+    239	
+    240	```python
+    241	irregular_lemmas = ["mouse", "goose"]
+    242	blocked_surfaces = {"mouses", "gooses"}
+    243	for lemma in irregular_lemmas:
+    244	    for bad in blocked_surfaces:
+    245	        assert bad not in set(grammar.generate(f"{lemma}<N><Pl>"))
+    246	```
+    247	
+    248	## 7. Common failure modes
+    249	
+    250	- Unquoted multichar symbols in `FST.re`.
+    251	- Rule order mismatch (rule expects context destroyed earlier).
+    252	- Overuse of wildcard `.` causing overgeneration.
+    253	- Encoding phonological processes in lexd instead of rules.
+    254	- Forgetting lexd repeated-lexicon binding behavior in one sequence.
+    255	- Surface forms leaking grammar markers (`+`, tags, `SG/PL`, class symbols).
+    256	- Overfitting by marker proliferation (many per-lemma classes instead of productive contexts).
+    257	- Micro-rules for tiny subsets instead of explicit exception handling.
+    258	
+    259	## 7.1 Generalization audit checklist
+    260	
+    261	Before shipping a grammar, answer:
+    262	1. What are the productive default inflection patterns?
+    263	2. Which forms are exceptions, and where are they encoded?
+    264	3. Does each class marker correspond to a real linguistic class?
+    265	4. Could any marker-specific rule be rewritten as a broader structural rule?
+    266	5. If all exceptions were removed, would the remaining grammar still be coherent?
+    267	
+    268	## 8. End-to-end example
+    269	
+    270	```python
+    271	from pyfoma import FST, lexd
+    272	
+    273	fsts = {}
+    274	
+    275	fsts['lexicon'] = lexd.compile(r'''
+    276	PATTERNS
+    277	NounRoot NounInfl
+    278	
+    279	LEXICON NounRoot
+    280	house
+    281	bag
+    282	spy
+    283	church
+    284	wish
+    285	buzz
+    286	
+    287	LEXICON NounInfl
+    288	<N><Sg>:
+    289	<N><Pl>:+s
+    290	''')
+    291	
+    292	fsts['y_to_ie'] = FST.re("$^rewrite(y:(ie) / _ '+' s)")
+    293	fsts['insert_e'] = FST.re("$^rewrite('':e / (sh|ch|x|s|z) _ '+' s)")
+    294	fsts['cleanup'] = FST.re("$^rewrite('+':'')")
+    295	
+    296	grammar = FST.re("$lexicon @ $y_to_ie @ $insert_e @ $cleanup", fsts)
+    297	
+    298	print(list(grammar.generate("spy<N><Pl>")))     # ['spies']
+    299	print(list(grammar.analyze("churches")))        # ['church<N><Pl>']
+    300	```
+    301	
+    302	Add a hygiene assertion block in tests:
+    303	
+    304	```python
+    305	for lex in ["spy<N><Pl>", "church<N><Pl>"]:
+    306	    for surf in grammar.generate(lex):
+    307	        assert "<" not in surf and ">" not in surf
+    308	        assert "+" not in surf
+    309	        assert "SG" not in surf and "PL" not in surf
+    310	```
+    311	
+    312	## 9. When to open `LEXD.md`
+    313	
+    314	Open `LEXD.md` whenever you need any of:
+    315	- `ALIAS`, selectors, multi-column lexicons
+    316	- `X(i):X(j)` or `X(i):Y(j)` pairing
+    317	- reduplication/root-pattern patterns
+    318	- sieve operators `<` and `>`
+    319	- anonymous lexicons/patterns
+    320	- subtle parsing details and escaping rules
+    321	
+→ Bash: cd /workspace/data; echo "=== feature combos ==="; cut -f3 gaa.trn | sort | uniq -c | sort -rn; echo "=== total lemmas ==="; cut -f1 gaa.tr…
+    === feature combos ===
+         74 V;NEG;PRS
+         73 V;HAB;NEG;PRS
+         70 V;HAB;PRS
+         68 V;HAB;PST
+         67 V;NFIN
+         66 V;HAB;NEG;PST
+         64 V;HAB;NEG;FUT
+         63 V;HAB;FUT
+         62 V;PRS
+    === total lemmas ===
+    95
+Let me analyze the morphological transformations per feature combination.
+→ Bash: cd /workspace/data; python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('gaa.trn')] by=collections.defaultdict(l…
+    ==== V;HAB;FUT 63
+      'kɔɔ'           -> 'baakɔɔ'            
+      'joo'           -> 'baajoo'            
+      'tsɔɔ'          -> 'baatsɔɔ'           
+      'sumɔ'          -> 'baasumɔ'           
+      'la'            -> 'baala'             
+      'kpasa'         -> 'baakpasa'          
+      'mi'            -> 'baami'             
+      'tee'           -> 'baatee'            
+      'gbi'           -> 'baagbi'            
+      'le'            -> 'baale'             
+      'he'            -> 'baahe'             
+      'ha'            -> 'baaha'             
+    ==== V;HAB;NEG;FUT 64
+      'la'            -> 'laee'              
+      'sɔle'          -> 'sɔleee'            
+      'tsa'           -> 'tsaee'             
+      'gblɛ'          -> 'gblɛee'            
+      'daa'           -> 'daaee'             
+      'hiɛ'           -> 'hiɛee'             
+      'wɔdɔi'         -> 'wɔdɔiee'           
+      'tsɛ'           -> 'tsɛee'             
+      'kɔ'            -> 'kɔee'              
+      'fala'          -> 'falaee'            
+      'jɔ'            -> 'jɔee'              
+      'futu'          -> 'futuee'            
+    ==== V;HAB;NEG;PRS 73
+      'ŋa'            -> 'ŋako'              
+      'sele'          -> 'seleko'            
+      'kota'          -> 'kotako'            
+      'joo'           -> 'jooko'             
+      'na'            -> 'nako'              
+      'daa'           -> 'daako'             
+      'lɛmɔ'          -> 'lɛmɔko'            
+      'kpɛtɛ'         -> 'kpɛtɛko'           
+      'kai'           -> 'kaiko'             
+      'da'            -> 'dako'              
+      'wo'            -> 'woko'              
+      'du'            -> 'duko'              
+    ==== V;HAB;NEG;PST 66
+      'sele'          -> 'seleee'            
+      'joo'           -> 'jooee'             
+      'wɔ'            -> 'wɔee'              
+      'fɔ'            -> 'fɔee'              
+      'hiɛ'           -> 'hiɛee'             
+      'futu'          -> 'futuee'            
+      'fu'            -> 'fuee'              
+      'gbi'           -> 'gbiee'             
+      'shamɔ'         -> 'shamɔee'           
+      'ku'            -> 'kuee'              
+      'wa'            -> 'waee'              
+      'bi'            -> 'biee'              
+    ==== V;HAB;PRS 70
+      'gbele'         -> 'gbele'             
+      'tsi'           -> 'tsi'               
+      'sele'          -> 'sele'              
+      'kwɛ'           -> 'kwɛ'               
+      'kota'          -> 'kota'              
+      'kase'          -> 'kase'              
+      'jie'           -> 'jie'               
+      'lɛmɔ'          -> 'lɛmɔ'              
+      'tsuku'         -> 'tsuku'             
+      'hi'            -> 'hi'                
+      'tswaa'         -> 'tswaa'             
+      'wɔ'            -> 'wɔ'                
+    ==== V;HAB;PST 68
+      'gbi'           -> 'gbi'               
+      'fala'          -> 'fala'              
+      'joo'           -> 'joo'               
+      'fɔ'            -> 'fɔ'                
+      'kafo'          -> 'kafo'              
+      'hiɛ'           -> 'hiɛ'               
+      'tawɔ'          -> 'tawɔ'              
+      'mɔ'            -> 'mɔ'                
+      'taa'           -> 'taa'               
+      'kai'           -> 'kai'               
+      'tsɔɔ'          -> 'tsɔɔ'              
+      'tuu'           -> 'tuu'               
+    ==== V;NEG;PRS 74
+      'kɔɔ'           -> 'kɔɔee'             
+      'faa'           -> 'faaee'             
+      'fɔ'            -> 'fɔee'              
+      'wɔdɔi'         -> 'wɔdɔiee'           
+      'la'            -> 'laee'              
+      'hi'            -> 'hiee'              
+      'nyiɛ'          -> 'nyiɛee'            
+      'kpe'           -> 'kpeee'             
+      'kpasa'         -> 'kpasaee'           
+      'ku'            -> 'kuee'              
+      'sɔle'          -> 'sɔleee'            
+      'kase'          -> 'kaseee'            
+    ==== V;NFIN 67
+      'joo'           -> 'joo'               
+      'he'            -> 'he'                
+      'gbi'           -> 'gbi'               
+      'wɔlɔmɔ'        -> 'wɔlɔmɔ'            
+      'sɔle'          -> 'sɔle'              
+      'bɔ'            -> 'bɔ'                
+      'na'            -> 'na'                
+      'hia'           -> 'hia'               
+      'yɛ'            -> 'yɛ'                
+      'bɛɛ'           -> 'bɛɛ'               
+      'fo'            -> 'fo'                
+      'tsɔse'         -> 'tsɔse'             
+    ==== V;PRS 62
+      'kpasa'         -> 'ŋkpasa'            
+      'tsɔse'         -> 'ŋtsɔse'            
+      'fee'           -> 'ŋfee'              
+      'kase'          -> 'ŋkase'             
+      'na'            -> 'ŋna'               
+      'tsɔɔ'          -> 'ŋtsɔɔ'             
+      'shamɔ'         -> 'ŋshamɔ'            
+      'tawɔ'          -> 'ŋtawɔ'             
+      'kɔ'            -> 'ŋkɔ'               
+      'tsine'         -> 'ŋtsine'            
+      'kpɛtɛ'         -> 'ŋkpɛtɛ'            
+      'tsu'           -> 'ŋtsu'
+→ Bash: cd /workspace/data; python3 -c " import collections rows=[l.rstrip('\n').split('\t') for l in open('gaa.trn')] by=collections.defaultdict(l…
+    V;HAB;FUT exceptions: 0 / 63
+    V;HAB;NEG;FUT exceptions: 0 / 64
+    V;HAB;NEG;PRS exceptions: 0 / 73
+    V;HAB;NEG;PST exceptions: 0 / 66
+    V;HAB;PRS exceptions: 0 / 70
+    V;HAB;PST exceptions: 0 / 68
+    V;NEG;PRS exceptions: 0 / 74
+    V;NFIN exceptions: 0 / 67
+    V;PRS exceptions: 0 / 62
+The rules are 100% deterministic. Let me get the full character inventory and build the FST.
+→ Bash: cd /workspace/data; python3 -c " rows=[l.rstrip('\n').split('\t') for l in open('gaa.trn')] chars=set() for lem,form,feat in rows:     char…
+    [' ', 'a', 'b', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 's', 't', 'u', 'w', 'y', 'ŋ', 'ɔ', 'ɛ']
+    24
+    ['FUT', 'HAB', 'NEG', 'NFIN', 'PRS', 'PST', 'V']
+There's a space in the inventory — let me check that.
+→ Bash: cd /workspace/data; grep -nP ' ' gaa.trn | grep -vP '\t.*\t' ; echo "---rows with space in col1 or col2---"; python3 -c " rows=[l.rstrip('\…
+    ---rows with space in col1 or col2---
+    108 'ye nkunim' 'ye nkunimko' V;HAB;NEG;PRS
+    264 'ye nkunim' 'baaye nkunim' V;HAB;FUT
+    396 'ye nkunim' 'ye nkunim' V;HAB;PRS
+    414 'ye nkunim' 'ye nkunim' V;HAB;PST
+    523 'ye nkunim' 'ye nkunimee' V;NEG;PRS
+    543 'ye nkunim' 'ye nkunimee' V;HAB;NEG;PST
+Rules are fully deterministic. Now I'll write the build script.
+→ Write: /workspace/build_fst.py
+    File created successfully at: /workspace/build_fst.py (file state is current in your context — no need to Read it back)
+→ Bash: cd /workspace && python3 build_fst.py
+    Training exact-match: 607/607
+    States: 15
+    Wrote /workspace/test.foma
+607/607 exact match with just 15 states. Let me verify against the held-out sets.
+→ Bash: sudo /opt/grader/grade test.foma --lang gaa 2>&1 | tail -20
+    fala	V;HAB;NEG;PRS	[V][HAB][NEG][PRS]falako	Y
+    fɔ	V;HAB;PRS	[V][HAB][PRS]fɔ	Y
+    kwɛ	V;HAB;FUT	[V][HAB][FUT]baakwɛ	Y
+    ye nkunim	V;NFIN	[V][NFIN]ye nkunim	Y
+    fu	V;NEG;PRS	[V][NEG][PRS]fuee	Y
+    jaa	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]jaaee	Y
+    kwɛ	V;NFIN	[V][NFIN]kwɛ	Y
+    jɔ	V;NFIN	[V][NFIN]jɔ	Y
+    ŋmɔɔ	V;NEG;PRS	[V][NEG][PRS]ŋmɔɔee	Y
+    ŋmɔ	V;HAB;PST	[V][HAB][PST]ŋmɔ	Y
+    ha	V;HAB;NEG;FUT	[V][HAB][NEG][FUT]haee	Y
+    jɔ	V;HAB;NEG;PST	[V][HAB][NEG][PST]jɔee	Y
+    bɛɛ	V;NEG;PRS	[V][NEG][PRS]bɛɛee	Y
+    tswaa	V;NFIN	[V][NFIN]tswaa	Y
+    ŋmɔɔ	V;HAB;PRS	[V][HAB][PRS]ŋmɔɔ	Y
+    ===============
+    Final score (dev): 79/79
+    ===============
+    Final score (test): 169/169
+    Wrote to /opt/grader/metrics.json
+The FST achieves a perfect score: **dev 79/79** and **test 169/169**, with only **15 states**.
+
+## Summary
+
+I built `/workspace/build_fst.py` which produces an accurate and compact FST for Ga (gaa) verb inflection.
+
+**Approach:** Analysis of the 607 training rows showed the lemma→wordform mapping is *fully regular* (0 exceptions) — each of the nine feature combinations corresponds to a simple affixation:
+
+| Features | Operation |
+|---|---|
+| `V;HAB;FUT` | prefix `baa` |
+| `V;PRS` | prefix `ŋ` |
+| `V;HAB;NEG;PRS` | suffix `ko` |
+| `V;NEG;PRS`, `V;HAB;NEG;FUT`, `V;HAB;NEG;PST` | suffix `ee` |
+| `V;HAB;PRS`, `V;HAB;PST`, `V;NFIN` | identity |
+
+**Construction:** Each branch emits the bracketed feature tags unchanged (identity), applies the affix as an epsilon-insertion, and copies the lemma through a single **shared** copy machine over the character alphabet. Every tag and character is a quoted atomic symbol per the requirement. Sharing one copy machine across all nine branches lets PyFoma minimize to just **15 states**.
+
+The script saves via `to_fomastring()` to `/workspace/test.foma`.
+
+**Results:** 607/607 training, 79/79 dev, 169/169 test — perfect accuracy (used only 1 of 10 grader runs).
+
+=== FINAL RESULT ===
+The FST achieves a perfect score: **dev 79/79** and **test 169/169**, with only **15 states**.
+
+## Summary
+
+I built `/workspace/build_fst.py` which produces an accurate and compact FST for Ga (gaa) verb inflection.
+
+**Approach:** Analysis of the 607 training rows showed the lemma→wordform mapping is *fully regular* (0 exceptions) — each of the nine feature combinations corresponds to a simple affixation:
+
+| Features | Operation |
+|---|---|
+| `V;HAB;FUT` | prefix `baa` |
+| `V;PRS` | prefix `ŋ` |
+| `V;HAB;NEG;PRS` | suffix `ko` |
+| `V;NEG;PRS`, `V;HAB;NEG;FUT`, `V;HAB;NEG;PST` | suffix `ee` |
+| `V;HAB;PRS`, `V;HAB;PST`, `V;NFIN` | identity |
+
+**Construction:** Each branch emits the bracketed feature tags unchanged (identity), applies the affix as an epsilon-insertion, and copies the lemma through a single **shared** copy machine over the character alphabet. Every tag and character is a quoted atomic symbol per the requirement. Sharing one copy machine across all nine branches lets PyFoma minimize to just **15 states**.
+
+The script saves via `to_fomastring()` to `/workspace/test.foma`.
+
+**Results:** 607/607 training, 79/79 dev, 169/169 test — perfect accuracy (used only 1 of 10 grader runs).
